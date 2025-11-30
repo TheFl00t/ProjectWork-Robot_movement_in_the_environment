@@ -1,0 +1,21 @@
+# CMake build folder
+build/
+out/
+cmake-build-debug/
+cmake-build-release/
+
+# IDE files
+.vscode/
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.user
+
+# Executables and libs
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+
+!glfw3.dll

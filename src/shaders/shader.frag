@@ -1,0 +1,7 @@
+#version 330 core
+
+out vec4 screenColor;
+
+void main() {
+    screenColor = vec4(1.0, 1.0, 1.0, 1.0); // Білий
+}
