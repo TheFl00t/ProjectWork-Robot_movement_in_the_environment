@@ -18,4 +18,8 @@ cmake-build-release/
 *.pdb
 *.ilk
 
+# Other
+.tmp/
+*.docx
+
 !glfw3.dll
