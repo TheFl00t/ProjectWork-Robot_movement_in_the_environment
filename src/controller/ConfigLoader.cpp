@@ -70,8 +70,8 @@ void ConfigLoader::loadWindowSize(const std::string& fileName, int& width, int& 
             break;
         }
     }
-    width = fabs(width);
-    height = fabs(height);
+    width = std::clamp(width, 800, INT16_MAX);
+    height = std::clamp(height, 600, INT16_MAX);
     file.close();
 }
 
@@ -137,7 +137,7 @@ Scene* ConfigLoader::loadScene(const std::string& fileName, int winWidth, int wi
             case TYPE_ROBOT: {
                 float x, y, r, v;
                 ss >> x >> y >> r >> v;
-                robot = new Robot(glm::vec2(x, y), std::clamp(r, 5.0f, 100.f), v);
+                robot = new Robot(glm::vec2(x, y), std::clamp(r, 5.0f, 100.f), std::clamp(v, 5.0f, 600.f));
                 break;
             }
             case TYPE_CIRCLE: {
@@ -146,7 +146,7 @@ Scene* ConfigLoader::loadScene(const std::string& fileName, int winWidth, int wi
                 if (env) env->addObstacle(new CircleObstacle(glm::vec2(x, y), r));
                 break;
             }
-            case TYPE_RECT: {
+            case TYPE_RECT: {   
                 float x, y, w, h;
                 ss >> x >> y >> w >> h;
                 if (env) env->addObstacle(new RectObstacle(glm::vec2(x, y), w, h));

@@ -217,7 +217,7 @@ void App::run() {
 
                     // Змінюємо розмір вікна GLFW
                     glfwSetWindowSize(window, winWidth, winHeight);
-                    
+   
                     // Оновлюємо область рендеру OpenGL
                     glViewport(0, 0, winWidth, winHeight);
 
@@ -230,7 +230,7 @@ void App::run() {
                 }
 
                 // 4. Видаляємо стару сцену
-                delete scene; 
+                delete scene;
                 
                 // 5. Завантажуємо нову сцену (з новими winWidth/winHeight)
                 scene = ConfigLoader::loadScene("config.cfg", winWidth, winHeight);

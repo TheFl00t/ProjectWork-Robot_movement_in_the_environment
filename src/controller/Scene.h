@@ -33,4 +33,5 @@ public:
     // Розрахунок точки зіткнення
     glm::vec2 getCollisionPoint(Robot* robot);
     Point* getDebugPoint() const { return collisionPoint; }
+    Environment* getEnvironmentPointer() { return environment; }
 };
