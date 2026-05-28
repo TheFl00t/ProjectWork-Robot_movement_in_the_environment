@@ -22,25 +22,20 @@ void CircleObstacle::update(float dt) {
     // ~
 }
 
-bool CircleObstacle::checkCollision(Robot* robot) {
-    // Відстань між центрами кіл
-    glm::vec2 diff = robot->entityPos - this->entityPos;
+CollisionInfo CircleObstacle::checkCollisionResult(Robot* robot) {
+    CollisionInfo info;
 
-    float distSq = diff.x * diff.x + diff.y * diff.y;
+    glm::vec2 dir = robot->entityPos - this->entityPos;
+    float dist = glm::length(dir);
     float minDist = robot->radius + this->radius;
 
-    return (distSq <= minDist * minDist);
-}
+    if (dist < minDist) {
+        info.collided = true;
+        // Направление от центра препятствия к роботу. Если центры совпали, выталкиваем вверх
+        info.normal = (dist > 0.0f) ? dir / dist : glm::vec2(0.0f, -1.0f);
+        info.depth = minDist - dist;
+        info.contactPoint = this->entityPos + info.normal * this->radius;
+    }
 
-glm::vec2 CircleObstacle::getCollisionPoint(Robot* robot) {
-    glm::vec2 dir = robot->entityPos - entityPos;
-    float dist = glm::length(dir);
-
-    if (dist == 0.0f) return entityPos;
-
-    glm::vec2 normDir = dir / dist;
-
-    // Точка на границі перешкоди у напрямку до робота
-    glm::vec2 contactPoint = entityPos + normDir * radius;
-    return contactPoint;
+    return info;
 }

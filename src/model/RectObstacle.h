@@ -15,9 +15,6 @@ public:
     void updateMesh() override;
     void update(float dt) override;
 
-    // Перевірка на зіткнення (AABB - Коло)
-    bool checkCollision(Robot* robot) override;
-
-    // Знаходження найближчої точки на прямокутнику
-    glm::vec2 getCollisionPoint(Robot* robot);
+    // Новый полиморфный метод расчета коллизии
+    CollisionInfo checkCollisionResult(Robot* robot) override;
 };

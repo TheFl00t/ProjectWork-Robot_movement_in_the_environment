@@ -14,9 +14,6 @@ public:
     void updateMesh() override;
     void update(float dt) override;
 
-    // Перевірка на зіткнення з роботом (Коло-Коло)
-    bool checkCollision(Robot* robot) override;
-    
-    // Розрахунок точки дотику
-    glm::vec2 getCollisionPoint(Robot* robot);
+    // Новый полиморфный метод расчета коллизии
+    CollisionInfo checkCollisionResult(Robot* robot) override;
 };

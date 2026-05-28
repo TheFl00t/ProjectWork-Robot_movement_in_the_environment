@@ -6,12 +6,19 @@
 
 class Robot;
 
+struct CollisionInfo {
+    bool collided = false;
+    glm::vec2 normal = glm::vec2(0.0f);       // Направление от препятствия к роботу
+    glm::vec2 contactPoint = glm::vec2(0.0f); // Точка касания на поверхности
+    float depth = 0.0f;                       // Насколько глубоко робот зашел в текстуру
+};
+
 class Obstacle : public Entity {
 public:
     Obstacle(glm::vec2 pos) : Entity(pos) {};
     virtual ~Obstacle() {};
 
-    virtual bool checkCollision(Robot* robot) = 0;
+    virtual CollisionInfo checkCollisionResult(Robot* robot) = 0;
     virtual void updateMesh() = 0;
 
 protected:
@@ -19,3 +26,4 @@ protected:
     void initCircle(float radius, unsigned vertexCount = 360);
     void initRect(float width, float height);
 };
+
