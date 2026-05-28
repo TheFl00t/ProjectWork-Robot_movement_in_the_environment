@@ -5,7 +5,7 @@
 
 class ConfigLoader {
 public:
-    static std::string getConfigPath(const std::string& fileName);
+    static std::string getConfigPath(const std::string& fileName, bool showLog = true);
     
     // Завантажує лише розміри вікна
     static void loadWindowSize(const std::string& fileName, int& width, int& height);

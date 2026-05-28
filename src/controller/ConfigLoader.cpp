@@ -26,30 +26,31 @@ AlignMode stringToAlignMode(const std::string& str) {
     return ALIGN_CUSTOM;
 }
 
-std::string ConfigLoader::getConfigPath(const std::string& fileName) {
+std::string ConfigLoader::getConfigPath(const std::string& fileName, bool showLog) {
     fs::path currentPath = fs::current_path();
     
-    // Список шляхів для пошуку
     std::vector<fs::path> searchPaths = {
         currentPath / fileName,
-        currentPath / "../../" / fileName,
+        currentPath / ".." / ".." / fileName, // Исправлено на кроссплатформенный вариант
         currentPath / "src" / fileName
     };
 
     for (const auto& path : searchPaths) {
         if (fs::exists(path)) {
-            std::cout << "[ConfigLoader] Found config at: " << path.string() << std::endl;
+            if (showLog) {
+                std::cout << "[ConfigLoader] Found config at: " << path.string() << std::endl;
+            }
             return path.string();
         }
     }
 
     std::cerr << "[ConfigLoader] ERROR: Config file '" << fileName << "' not found!" << std::endl;
-    return ""; // Обробимо далi
-}
+    return "";
+} // Обробимо далi
 
 void ConfigLoader::loadWindowSize(const std::string& fileName, int& width, int& height) {
     width = 800; height = 600; // Default
-    std::string fullPath = getConfigPath(fileName);
+    std::string fullPath = getConfigPath(fileName, false);
     if (fullPath.empty()) return;
 
     std::ifstream file(fullPath);

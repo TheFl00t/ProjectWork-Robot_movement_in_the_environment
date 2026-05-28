@@ -17,14 +17,14 @@ std::string Shader::getFilePath(const std::string& fileName) {
     std::filesystem::path currentPath = std::filesystem::current_path();
     
     // Варіант 1: Запуск із build/Debug/
-    std::filesystem::path pathFromExe = currentPath / "../../src/shaders" / fileName;
+    std::filesystem::path pathFromExe = currentPath / ".." / ".." / "src" / "shaders" / fileName;
     if (std::filesystem::exists(pathFromExe)) {
         std::cout << "[Shader] Found file: " << fileName << " at: " << pathFromExe.string() << std::endl;
         return pathFromExe.string();
     }
     
     // Варіант 2: Запуск із кореня проекту (VSCode)
-    std::filesystem::path pathFromRoot = currentPath / "src/shaders" / fileName;
+    std::filesystem::path pathFromRoot = currentPath / "src" / "shaders" / fileName;
     if (std::filesystem::exists(pathFromRoot)) {
         std::cout << "[Shader] Found file: " << fileName << " at: " << pathFromRoot.string() << std::endl;
         return pathFromRoot.string();

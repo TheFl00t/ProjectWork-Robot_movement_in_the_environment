@@ -192,6 +192,7 @@ void App::run() {
                 // Отримуємо повний шлях до файлу
                 std::string fullPath = ConfigLoader::getConfigPath("config.cfg");
                 
+                std::cout << "[App] Opening config file..." << std::endl;
                 // Запускаємо notepad.exe зi шляхом fullPath
                 ShellExecuteA(NULL, "open", "notepad.exe", fullPath.c_str(), NULL, SW_SHOW);
             }
