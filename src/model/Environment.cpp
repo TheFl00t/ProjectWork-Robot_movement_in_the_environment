@@ -21,48 +21,54 @@ void Environment::update(float dt) {
     // ~
 }
 
-bool Environment::checkCollision(Robot* robot) {
-    // 1. Перевірка меж (Стіни)
+CollisionInfo Environment::checkCollisionResult(Robot* robot) {
+    CollisionInfo info;
+
     float left   = entityPos.x;
     float right  = entityPos.x + width;
     float top    = entityPos.y;
     float bottom = entityPos.y + height;
 
-    if (robot->entityPos.x - robot->radius < left || 
-        robot->entityPos.x + robot->radius > right ||
-        robot->entityPos.y - robot->radius < top  || 
-        robot->entityPos.y + robot->radius > bottom)
-    {
-        return true;
+    // 1. Проверка внешних границ арены (выталкивание внутрь)
+    if (robot->entityPos.x - robot->radius < left) {
+        info.collided = true;
+        info.depth = left - (robot->entityPos.x - robot->radius);
+        info.normal = glm::vec2(1.0f, 0.0f);
+        info.contactPoint = glm::vec2(left, robot->entityPos.y);
+        return info;
+    }
+    if (robot->entityPos.x + robot->radius > right) {
+        info.collided = true;
+        info.depth = (robot->entityPos.x + robot->radius) - right;
+        info.normal = glm::vec2(-1.0f, 0.0f);
+        info.contactPoint = glm::vec2(right, robot->entityPos.y);
+        return info;
+    }
+    if (robot->entityPos.y - robot->radius < top) {
+        info.collided = true;
+        info.depth = top - (robot->entityPos.y - robot->radius);
+        info.normal = glm::vec2(0.0f, 1.0f);
+        info.contactPoint = glm::vec2(robot->entityPos.x, top);
+        return info;
+    }
+    if (robot->entityPos.y + robot->radius > bottom) {
+        info.collided = true;
+        info.depth = (robot->entityPos.y + robot->radius) - bottom;
+        info.normal = glm::vec2(0.0f, -1.0f);
+        info.contactPoint = glm::vec2(robot->entityPos.x, bottom);
+        return info;
     }
 
-    // 2. Перевірка внутрішніх перешкод
+    // 2. Проверка внутренних препятствий
     for (auto* obs : obstacles) {
-        if (obs->checkCollision(robot))
-            return true;
+        CollisionInfo obsInfo = obs->checkCollisionResult(robot);
+        if (obsInfo.collided) {
+            // Если задето несколько препятствий, выбираем то, где проникновение глубже
+            if (!info.collided || obsInfo.depth > info.depth) {
+                info = obsInfo;
+            }
+        }
     }
-    return false;
-}
 
-glm::vec2 Environment::getCollisionPoint(Robot* robot) {
-    float left   = entityPos.x;
-    float right  = entityPos.x + width;
-    float top    = entityPos.y;
-    float bottom = entityPos.y + height;
-
-    float r = robot->radius;
-    float x = robot->entityPos.x;
-    float y = robot->entityPos.y;
-
-    // Логіка визначення, яку стіну ми зачепили
-    if (x - r < left)
-        return glm::vec2(left, y);
-    else if (x + r > right)
-        return glm::vec2(right, y);
-    else if (y - r < top)
-        return glm::vec2(x, top);
-    else if (y + r > bottom)
-        return glm::vec2(x, bottom);
-
-    return robot->entityPos;
+    return info;
 }
