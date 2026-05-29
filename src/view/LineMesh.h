@@ -12,6 +12,5 @@ public:
     ~LineMesh();
 
     void updateLine(glm::vec2 start, glm::vec2 end);
-    
-    void draw() override;
+    void draw(GLenum topology) override;
 };

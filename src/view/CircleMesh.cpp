@@ -46,7 +46,7 @@ void CircleMesh::setRadius(float r) {
     }
 }
 
-void CircleMesh::draw() {
+void CircleMesh::draw(GLenum topology) {
     glBindVertexArray(VAO);
-    glDrawArrays(GL_LINE_LOOP, 0, vertex_count);
+    glDrawArrays(topology, 0, vertex_count);
 }

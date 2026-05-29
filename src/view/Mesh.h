@@ -10,5 +10,5 @@ public:
     Mesh() : VBO(0), VAO(0) {};
     virtual ~Mesh() {};
 
-    virtual void draw() = 0;
+    virtual void draw(GLenum topology) = 0;
 };

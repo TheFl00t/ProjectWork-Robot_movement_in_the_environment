@@ -18,5 +18,5 @@ public:
     float getRadius() const { return radius; }
     void setRadius(float r);
     
-    void draw() override;
+    void draw(GLenum topology) override;
 };

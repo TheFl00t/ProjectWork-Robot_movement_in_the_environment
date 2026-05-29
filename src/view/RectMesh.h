@@ -16,6 +16,5 @@ public:
     ~RectMesh();
 
     unsigned getVertexCount() const { return vertex_count; }
-
-    void draw() override;
+    void draw(GLenum topology) override;
 };
