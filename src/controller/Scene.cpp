@@ -14,58 +14,71 @@ Scene::~Scene() {
     delete velocityLine;
 }
 
-bool Scene::checkCollision(const glm::vec2& newPos) {
+CollisionInfo Scene::checkHypotheticalCollision(const glm::vec2& pos) {
     glm::vec2 oldPos = robot->entityPos;
-    robot->entityPos = newPos;
+    robot->entityPos = pos;
 
-    bool collision = environment->checkCollision(robot);
+    CollisionInfo info = environment->checkCollisionResult(robot);
 
     robot->entityPos = oldPos;
-    return collision;
-}
-
-glm::vec2 Scene::getCollisionPoint(Robot* robot) {
-    // 1. Перевірка стін
-    glm::vec2 wallPoint = environment->getCollisionPoint(robot);
-    if (wallPoint != robot->entityPos) {
-        return wallPoint;
-    }
-
-    // 2. Перевірка перешкод
-    for (auto* obs : environment->getObstacles()) {
-        if (obs->checkCollision(robot)) {
-            if (auto circle = dynamic_cast<CircleObstacle*>(obs)) {
-                return circle->getCollisionPoint(robot);
-            }
-            if (auto rect = dynamic_cast<RectObstacle*>(obs)) {
-                return rect->getCollisionPoint(robot);
-            }
-        }
-    }
-    return robot->entityPos;
+    return info;
 }
 
 void Scene::update(float dt) {
-    // Розрахунок нової позиції
-    glm::vec2 newPos = robot->entityPos + robot->direction * robot->velocity * dt;
+    if (!robot || robot->direction == glm::vec2(0.f)) {
+        collisionPoint->setAlpha(0.0f);
+        return;
+    }
 
-    if (!checkCollision(newPos)) {
-        robot->entityPos = newPos;
-        collisionPoint->setAlpha(0.0f); // Ховаємо точку
-    } 
-    else {
-        glm::vec2 safePos = robot->entityPos;
-        robot->entityPos = newPos;
+    glm::vec2 totalMove = robot->direction * robot->velocity * dt;
+    float moveDist = glm::length(totalMove);
 
-        glm::vec2 contact = getCollisionPoint(robot);
+    // Динамические подкроки
+    int subSteps = std::max(1, static_cast<int>(std::ceil(moveDist / (robot->radius * 0.5f))));
+    glm::vec2 subMove = totalMove / (float)subSteps;
+    
+    CollisionInfo finalCollision;
+    bool hasCollision = false;
 
-        robot->entityPos = safePos;
+    for (int i = 0; i < subSteps; ++i) {
+        glm::vec2 nextPos = robot->entityPos + subMove;
+        CollisionInfo info = checkHypotheticalCollision(nextPos);
+        
+        if (!info.collided) {
+            robot->entityPos = nextPos;
+        } else {
+            // Бинарный поиск с ранним выходом
+            glm::vec2 low = robot->entityPos;
+            glm::vec2 high = nextPos;
+            
+            for (int j = 0; j < 8; ++j) { 
+                glm::vec2 diff = high - low;
+                if (glm::dot(diff, diff) < 0.01f) break;
+                
+                glm::vec2 mid = (low + high) * 0.5f;
+                CollisionInfo midInfo = checkHypotheticalCollision(mid);
+                if (!midInfo.collided) {
+                    low = mid;
+                } else {
+                    high = mid;
+                }
+            }
+            robot->entityPos = low;
+            
+            // Получаем точные геометрические параметры коллизии для финальной позиции
+            finalCollision = checkHypotheticalCollision(high);
+            hasCollision = true;
+            break;
+        }
+    }
 
-        collisionPoint->entityPos = contact;
-        collisionPoint->setAlpha(1.0f); // Показуємо точку
+    if (!hasCollision) {
+        collisionPoint->setAlpha(0.0f);
+    } else {
+        collisionPoint->entityPos = finalCollision.contactPoint;
+        collisionPoint->setAlpha(1.0f);
     }
     
-    // Оновлення візуального вектора швидкості
     if (showVelocityVector) {
         glm::vec2 start = robot->entityPos;
         float scale = (robot->velocity < 1.0f) ? robot->radius : (robot->velocity * 0.5f);

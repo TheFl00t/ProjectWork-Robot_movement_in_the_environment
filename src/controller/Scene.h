@@ -26,12 +26,11 @@ public:
     void render(Renderer* renderer); 
 
     Robot* getRobot() { return robot; }
-
-    // Перевірка колізії для гіпотетичної нової позиції
-    bool checkCollision(const glm::vec2& newPos);
-    
-    // Розрахунок точки зіткнення
-    glm::vec2 getCollisionPoint(Robot* robot);
-    Point* getDebugPoint() const { return collisionPoint; }
     Environment* getEnvironmentPointer() { return environment; }
+
+    // Новый вспомогательный метод для проверки гипотетической позиции
+    CollisionInfo checkHypotheticalCollision(const glm::vec2& pos);
+
+    Point* getDebugPoint() const { return collisionPoint; }
+    bool checkCollision(const glm::vec2& newPos) { return checkHypotheticalCollision(newPos).collided; }
 };
