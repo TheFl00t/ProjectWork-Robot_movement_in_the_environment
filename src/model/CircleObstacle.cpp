@@ -5,6 +5,11 @@ CircleObstacle::CircleObstacle(glm::vec2 pos, float radius)
       radius(radius)
 {
     initCircle(radius);
+
+    style.mode = DrawMode::FillAndOutline;
+    style.fillColor = glm::vec4(0.5f, 0.5f, 0.5f, 0.4f);
+    style.outlineColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); 
+    style.lineWidth = 1.5f;
 }
 
 CircleObstacle::~CircleObstacle() {
@@ -31,7 +36,7 @@ CollisionInfo CircleObstacle::checkCollisionResult(Robot* robot) {
 
     if (dist < minDist) {
         info.collided = true;
-        // Направление от центра препятствия к роботу. Если центры совпали, выталкиваем вверх
+        // Напрямок від центру перешкоди до робота. Якщо центри збіглися, виштовхуємо вгору
         info.normal = (dist > 0.0f) ? dir / dist : glm::vec2(0.0f, -1.0f);
         info.depth = minDist - dist;
         info.contactPoint = this->entityPos + info.normal * this->radius;

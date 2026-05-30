@@ -1,9 +1,13 @@
 #include "Environment.h"
 
-Environment::Environment(glm::vec2 pos, float width, float height) :
-    Entity(pos), width(width), height(height) 
+Environment::Environment(glm::vec2 pos, float width, float height) 
+    : Entity(pos), width(width), height(height) 
 {
     setMesh(new RectMesh(width, height));
+
+    style.mode = DrawMode::Outline;
+    style.outlineColor = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+    style.lineWidth = 3.0f;
 }
 
 Environment::~Environment() {
@@ -18,7 +22,7 @@ void Environment::addObstacle(Obstacle* obs) {
 }
 
 void Environment::update(float dt) {
-    // ~
+    // Середовище статичне
 }
 
 CollisionInfo Environment::checkCollisionResult(Robot* robot) {
@@ -29,7 +33,7 @@ CollisionInfo Environment::checkCollisionResult(Robot* robot) {
     float top    = entityPos.y;
     float bottom = entityPos.y + height;
 
-    // 1. Проверка внешних границ арены (выталкивание внутрь)
+    // 1. Перевірка зовнішніх меж арени (виштовхування всередину)
     if (robot->entityPos.x - robot->radius < left) {
         info.collided = true;
         info.depth = left - (robot->entityPos.x - robot->radius);
@@ -59,11 +63,11 @@ CollisionInfo Environment::checkCollisionResult(Robot* robot) {
         return info;
     }
 
-    // 2. Проверка внутренних препятствий
+    // 2. Перевірка внутрішніх перешкод на карті
     for (auto* obs : obstacles) {
         CollisionInfo obsInfo = obs->checkCollisionResult(robot);
         if (obsInfo.collided) {
-            // Если задето несколько препятствий, выбираем то, где проникновение глубже
+            // Якщо зачеплено кілька перешкод, вибираємо ту, де проникнення найглибше
             if (!info.collided || obsInfo.depth > info.depth) {
                 info = obsInfo;
             }

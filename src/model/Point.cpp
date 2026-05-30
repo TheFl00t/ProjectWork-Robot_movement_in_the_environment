@@ -1,9 +1,13 @@
 #include "Point.h"
 
 Point::Point(glm::vec2 pos, glm::vec4 col)
-    : Entity(pos), color(col)
+    : Entity(pos)
 {
-    mesh = new PointMesh(color);
+    mesh = new PointMesh();
+
+    // Налаштування матеріалу для дебаг-точки
+    style.mode = DrawMode::Outline;
+    style.outlineColor = col;
 }
 
 Point::~Point() {
@@ -13,8 +17,5 @@ Point::~Point() {
 void Point::update(float dt) {}
 
 void Point::setAlpha(float alpha) {
-    this->color.a = alpha;
-    if (auto pMesh = dynamic_cast<PointMesh*>(mesh)) {
-        pMesh->setColor(this->color);
-    }
+    style.outlineColor.a = alpha;
 }

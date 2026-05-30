@@ -6,6 +6,11 @@ RectObstacle::RectObstacle(glm::vec2 pos, float width, float height)
       height(height)
 {
     initRect(width, height);
+
+    style.mode = DrawMode::FillAndOutline;
+    style.fillColor = glm::vec4(0.5f, 0.5f, 0.5f, 0.4f);
+    style.outlineColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); 
+    style.lineWidth = 1.5f;
 }
 
 RectObstacle::~RectObstacle() {
@@ -20,13 +25,13 @@ void RectObstacle::updateMesh() {
 }
 
 void RectObstacle::update(float dt) {
-    // ~
+    // Прямокутна перешкода статична
 }
 
 CollisionInfo RectObstacle::checkCollisionResult(Robot* robot) {
     CollisionInfo info;
 
-    // Находим ближайшую точку на прямоугольнике к центру робота
+    // Знаходимо найближчу точку на прямокутнику до центру робота
     float closestX = std::clamp(robot->entityPos.x, entityPos.x, entityPos.x + width);
     float closestY = std::clamp(robot->entityPos.y, entityPos.y, entityPos.y + height);
     glm::vec2 closestPoint(closestX, closestY);
@@ -34,7 +39,7 @@ CollisionInfo RectObstacle::checkCollisionResult(Robot* robot) {
     glm::vec2 dir = robot->entityPos - closestPoint;
     float dist = glm::length(dir);
 
-    // Центр робота снаружи или на границе прямоугольника
+    // Центр робота зовні або на межі прямокутника
     if (dist > 0.0f) {
         if (dist < robot->radius) {
             info.collided = true;
@@ -43,10 +48,10 @@ CollisionInfo RectObstacle::checkCollisionResult(Robot* robot) {
             info.contactPoint = closestPoint;
         }
     } 
-    // Центр робота оказался глубоко внутри прямоугольника (dist == 0)
+    // Центр робота опинився глибоко всередині прямокутника (dist == 0)
     else {
         info.collided = true;
-        // Вычисляем расстояния до всех 4 граней для определения кратчайшего пути выталкивания
+        // Обчислюємо відстані до всіх 4 граней для визначення найкоротшого шляху виштовхування
         float dl = robot->entityPos.x - entityPos.x;
         float dr = (entityPos.x + width) - robot->entityPos.x;
         float dt = robot->entityPos.y - entityPos.y;
