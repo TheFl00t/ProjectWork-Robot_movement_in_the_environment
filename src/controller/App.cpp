@@ -55,7 +55,7 @@ void App::run() {
     glViewport(0, 0, winWidth, winHeight);
 
     // ===================================
-    //            ImGui Setup
+    //          Налаштування ImGui
     // ===================================
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -65,14 +65,11 @@ void App::run() {
     ImGui_ImplOpenGL3_Init("#version 330");
 
     // ===================================
-    //         Resources & Scene
+    //          Ресурси та сцена
     // ===================================
     ShaderManager* shaderManager = ShaderManager::getInstance();
     // Завантажуємо шейдери
-    shaderManager->loadShader("obstacle", "shader.vert", "shader.frag");
-    shaderManager->loadShader("robot", "robotShader.vert", "robotShader.frag");
-    shaderManager->loadShader("walls", "wallsShader.vert", "wallsShader.frag");
-    shaderManager->loadShader("point", "pointShader.vert", "pointShader.frag");
+    shaderManager->loadShader("default", "shader.vert", "defaultShader.frag");
 
     Renderer* renderer = Renderer::getInstance();
 
@@ -86,12 +83,12 @@ void App::run() {
     this->robot = scene->getRobot();
 
     // Налаштування OpenGL
-    glEnable(GL_PROGRAM_POINT_SIZE);
+    glPointSize(8.0f);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // ===================================
-    //             Main Loop
+    //        Головний цикл симуляції
     // ===================================
     while (!glfwWindowShouldClose(window)) {
         float dt = computeDeltaTime();
@@ -110,7 +107,7 @@ void App::run() {
             ImGui::NewFrame();
         }
 
-        // --- Оновлення та Рендер ---
+        // --- Оновлення та рендеринг ---
         {
             scene->update(dt);
             scene->render(renderer);
@@ -171,7 +168,7 @@ void App::run() {
                 if (robot) {
                     robot->entityPos = robot->startPos;
                     robot->direction = glm::vec2(0.f);
-                    scene->checkCollision(robot->entityPos); // Скинути точку колізії
+                    scene->checkCollision(robot->entityPos); // Скинути точку зіткнення
                 }
             }
             if (ImGui::Button("Reset Radius", ImVec2(150, 25))) {
@@ -193,7 +190,7 @@ void App::run() {
                 std::string fullPath = ConfigLoader::getConfigPath("config.cfg");
                 
                 std::cout << "[App] Opening config file..." << std::endl;
-                // Запускаємо notepad.exe зi шляхом fullPath
+                // Запускаємо notepad.exe зі шляхом fullPath
                 ShellExecuteA(NULL, "open", "notepad.exe", fullPath.c_str(), NULL, SW_SHOW);
             }
             
@@ -211,7 +208,7 @@ void App::run() {
                 newW = std::clamp(newW, 800, mode->width);
                 newH = std::clamp(newH, 600, mode->height);
 
-                // 3. Якщо розмір змінився - застосовуємо зміни
+                // 3. Якщо розмір змінився — застосовуємо зміни
                 if (newW != winWidth || newH != winHeight) {
                     winWidth = newW;
                     winHeight = newH;
@@ -219,7 +216,7 @@ void App::run() {
                     // Змінюємо розмір вікна GLFW
                     glfwSetWindowSize(window, winWidth, winHeight);
    
-                    // Оновлюємо область рендеру OpenGL
+                    // Оновлюємо область рендерингу OpenGL
                     glViewport(0, 0, winWidth, winHeight);
 
                     // Оновлюємо матрицю проекції
@@ -243,7 +240,7 @@ void App::run() {
             ImGui::End();
         }
 
-        // --- ImGui & OpenGL: Рендер ---
+        // --- ImGui та OpenGL: Рендеринг ---
         {
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

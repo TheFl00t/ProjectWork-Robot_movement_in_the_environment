@@ -1,9 +1,10 @@
 #include "Scene.h"
 
+// Конструктор: ініціалізуємо дебаг-об'єкти з початковими параметрами
 Scene::Scene(Robot* r, Environment* env)
     : robot(r), environment(env)
 {
-    collisionPoint = new Point(glm::vec2(0.f, 0.f), glm::vec4(1.f, 0.f, 0.f, 0.f)); // default альфа = 0
+    collisionPoint = new Point(glm::vec2(0.f, 0.f), glm::vec4(1.f, 0.f, 0.f, 0.f)); // початкова альфа = 0.0f
     velocityLine = new Line();
 }
 
@@ -33,7 +34,7 @@ void Scene::update(float dt) {
     glm::vec2 totalMove = robot->direction * robot->velocity * dt;
     float moveDist = glm::length(totalMove);
 
-    // Динамические подкроки
+    // Динамічні підкроки (субстепінг) для запобігання проходженню крізь стіни
     int subSteps = std::max(1, static_cast<int>(std::ceil(moveDist / (robot->radius * 0.5f))));
     glm::vec2 subMove = totalMove / (float)subSteps;
     
@@ -47,7 +48,7 @@ void Scene::update(float dt) {
         if (!info.collided) {
             robot->entityPos = nextPos;
         } else {
-            // Бинарный поиск с ранним выходом
+            // Бінарний пошук із достроковим виходом для точного притискання до стіни
             glm::vec2 low = robot->entityPos;
             glm::vec2 high = nextPos;
             
@@ -65,7 +66,7 @@ void Scene::update(float dt) {
             }
             robot->entityPos = low;
             
-            // Получаем точные геометрические параметры коллизии для финальной позиции
+            // Отримуємо точні геометричні параметри зіткнення для фінальної позиції
             finalCollision = checkHypotheticalCollision(high);
             hasCollision = true;
             break;
@@ -88,27 +89,26 @@ void Scene::update(float dt) {
 }
 
 void Scene::render(Renderer* renderer) {
-    // Малюємо середовище
-    renderer->setShader(ShaderManager::getInstance()->getShader("obstacle"));
-    renderer->renderEnvironment(environment);
-    
-    // Малюємо стіни
-    renderer->setShader(ShaderManager::getInstance()->getShader("walls"));
-    renderer->renderWalls(environment);
+    renderer->setShader(ShaderManager::getInstance()->getShader("default"));
 
-    // Малюємо робота
-    renderer->setShader(ShaderManager::getInstance()->getShader("robot"));
-    renderer->renderRobot(robot);
+    // Малюємо оточення (стіни арени)
+    renderer->renderEntity(environment);
 
-    // Малюємо вектор швидкості
-    if (showVelocityVector) {
-        renderer->setShader(ShaderManager::getInstance()->getShader("walls"));
-        renderer->renderLine(velocityLine);
+    // Малюємо внутрішні перешкоди
+    for (auto* obs : environment->getObstacles()) {
+        renderer->renderEntity(obs);
     }
 
-    // Малюємо точку колізії
+    // Малюємо робота
+    renderer->renderEntity(robot);
+
+    // Малюємо дебаг-вектор швидкості
+    if (showVelocityVector) {
+        renderer->renderEntity(velocityLine);
+    }
+
+    // Малюємо дебаг-точку зіткнення
     if (showCollisionPoint && collisionPoint) {
-        renderer->setShader(ShaderManager::getInstance()->getShader("point"));
-        renderer->renderPoint(collisionPoint);
+        renderer->renderEntity(collisionPoint);
     }
 }

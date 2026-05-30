@@ -28,15 +28,7 @@ public:
     
     // Оновлює матрицю проекції у всіх шейдерах (при зміні розміру вікна)
     void applyProjectionToAllShaders();
-
-    // Головний метод рендеру сцени
-    void render(Robot* robot, Environment* env);
     
-    // Спеціалізовані методи
-    void renderEnvironment(Environment* env);
-    void renderWalls(Environment* env);
-    void renderRobot(Robot* robot);
-    void renderObstacle(Obstacle* obstacle);
-    void renderPoint(Point* point);
-    void renderLine(Line* line);
+    // Спеціалізовані методи рендерингу для сутностей
+    void renderEntity(Entity* entity);
 };

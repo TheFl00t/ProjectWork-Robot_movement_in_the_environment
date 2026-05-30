@@ -24,59 +24,40 @@ void Renderer::applyProjectionToAllShaders() {
     }
 }
 
-void Renderer::render(Robot* robot, Environment* env) {
-    renderEnvironment(env);
-    renderRobot(robot);
-}
+void Renderer::renderEntity(Entity* entity) {
+    if (!entity || !currentShader) return;
 
-void Renderer::renderEnvironment(Environment* env) {
-    for (Obstacle* obs : env->getObstacles()) {
-        renderObstacle(obs);
-    }
-}
-
-void Renderer::renderWalls(Environment* env) {
     currentShader->use();
-    if (auto mesh = env->getMesh()) {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(env->entityPos, 0.0f));
+    if (auto mesh = entity->getMesh()) {
+        // Позиціонування об'єкта у світових координатах
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(entity->entityPos, 0.0f));
         currentShader->setMat4("uModel", model);
-        mesh->draw();
-    }
-}
+        
+        // Рендеринг на основі структури станів (Матеріалу)
+        switch (entity->style.mode) {
+            case DrawMode::Outline:
+                glLineWidth(entity->style.lineWidth);
+                currentShader->setVec4("uColor", entity->style.outlineColor);
+                mesh->draw(GL_LINE_LOOP);
+                glLineWidth(1.0f); // Скидання на стандартні значення
+                break;
 
-void Renderer::renderRobot(Robot* robot) {
-    currentShader->use();
-    if (auto mesh = robot->getMesh()) {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(robot->entityPos, 0.0f));
-        currentShader->setMat4("uModel", model);
-        mesh->draw();
-    }
-}
+            case DrawMode::Fill:
+                currentShader->setVec4("uColor", entity->style.fillColor);
+                mesh->draw(GL_TRIANGLE_FAN);
+                break;
 
-void Renderer::renderObstacle(Obstacle* obstacle) {
-    currentShader->use();
-    if (auto mesh = obstacle->getMesh()) {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(obstacle->entityPos, 0.0f));
-        currentShader->setMat4("uModel", model);
-        mesh->draw();
-    }
-}
-
-void Renderer::renderPoint(Point* point) {
-    currentShader->use();
-    if (auto mesh = point->getMesh()) {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(point->entityPos, 0.0f));
-        currentShader->setMat4("uModel", model);
-        mesh->draw();
-    }
-}
-
-void Renderer::renderLine(Line* line) {
-    currentShader->use();
-    // Для лінії модельна матриця одинична, бо координати вершин 
-    // вже є глобальними (мировими), ми їх обчислюємо в Scene::update
-    if (auto mesh = line->getMesh()) {
-        currentShader->setMat4("uModel", glm::mat4(1.0f));
-        mesh->draw();
+            case DrawMode::FillAndOutline:
+                // Прохід 1: Заливка тіла
+                currentShader->setVec4("uColor", entity->style.fillColor);
+                mesh->draw(GL_TRIANGLE_FAN);
+                
+                // Прохід 2: Відтворення контуру поверх тіла
+                glLineWidth(entity->style.lineWidth);
+                currentShader->setVec4("uColor", entity->style.outlineColor);
+                mesh->draw(GL_LINE_LOOP);
+                glLineWidth(1.0f); // Скидання на стандартні значення
+                break;
+        }
     }
 }
