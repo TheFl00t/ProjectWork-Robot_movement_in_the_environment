@@ -3,7 +3,7 @@
 Environment::Environment(glm::vec2 pos, float width, float height) 
     : Entity(pos), width(width), height(height) 
 {
-    setMesh(new RectMesh(width, height));
+    setMesh(new RectMesh(width, height, false));
 
     style.mode = DrawMode::Outline;
     style.outlineColor = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);

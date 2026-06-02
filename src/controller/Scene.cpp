@@ -36,6 +36,7 @@ void Scene::update(float dt) {
 
     // Динамічні підкроки (субстепінг) для запобігання проходженню крізь стіни
     int subSteps = std::max(1, static_cast<int>(std::ceil(moveDist / (robot->radius * 0.5f))));
+    subSteps = std::min(subSteps, 32);
     glm::vec2 subMove = totalMove / (float)subSteps;
     
     CollisionInfo finalCollision;

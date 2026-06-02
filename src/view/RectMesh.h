@@ -7,12 +7,13 @@ private:
     unsigned int vertex_count;
     float width;
     float height;
-    
+    bool centered;
+
     void init();
 
 public:
     RectMesh();
-    RectMesh(float width, float height);
+    RectMesh(float width, float height, bool centered = true);
     ~RectMesh();
 
     unsigned getVertexCount() const { return vertex_count; }

@@ -1,10 +1,10 @@
 #include "RectMesh.h"
 
 RectMesh::RectMesh()
-    : width(0.0f), height(0.0f), vertex_count(0) {}
+    : width(0.0f), height(0.0f), vertex_count(0), centered(true) {}
 
-RectMesh::RectMesh(float width, float height)
-    : width(width), height(height)
+RectMesh::RectMesh(float width, float height, bool centered)
+    : width(width), height(height), centered(centered)
 {
     init();
 }
@@ -15,12 +15,28 @@ RectMesh::~RectMesh() {
 }
 
 void RectMesh::init() {
-    std::vector<glm::vec2> vertices = {
-        glm::vec2(0.0f, 0.0f),
-        glm::vec2(width, 0.0f),
-        glm::vec2(width, height),
-        glm::vec2(0.0f, height)
-    };
+    std::vector<glm::vec2> vertices;
+
+    if (centered) {
+        // Вариант для РЕДАКТОРА: координаты строятся симметрично вокруг центра
+        float hw = width * 0.5f;
+        float hh = height * 0.5f;
+        vertices = {
+            glm::vec2(-hw, -hh), // Левый верхний угол
+            glm::vec2( hw, -hh), // Правый верхний угол
+            glm::vec2( hw,  hh), // Правый нижний угол
+            glm::vec2(-hw,  hh)  // Левый нижний угол
+        };
+    } else {
+        // Вариант для АРЕНЫ: координаты строятся от верхнего левого угла
+        vertices = {
+            glm::vec2(0.0f, 0.0f),
+            glm::vec2(width, 0.0f),
+            glm::vec2(width, height),
+            glm::vec2(0.0f, height)
+        };
+    }
+    
     vertex_count = vertices.size();
 
     glGenVertexArrays(1, &VAO);

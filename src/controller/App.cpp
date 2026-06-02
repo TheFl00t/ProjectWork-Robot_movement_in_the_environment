@@ -79,7 +79,7 @@ void App::run() {
     renderer->applyProjectionToAllShaders();
 
     // Завантажуємо сцену
-    Scene* scene = ConfigLoader::loadScene("config.json", winWidth, winHeight);
+    scene = ConfigLoader::loadScene("config.json", winWidth, winHeight);
     this->robot = scene->getRobot();
 
     // Налаштування OpenGL
@@ -161,6 +161,44 @@ void App::run() {
             ImGui::Checkbox("Show Velocity Vector", &scene->showVelocityVector);
             ImGui::Separator();
             
+            // ============================================================
+            // НОВИЙ РОЗДІЛ: РЕДАКТОР КАРТ
+            // ============================================================
+            ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "[ Map Editor ]");
+            
+            // Перемикач режиму роботи програми
+            if (ImGui::Checkbox("Enable Edit Mode", &isEditMode)) {
+                if (isEditMode && robot) {
+                    // Зупиняємо робота при вході в редактор, щоб він не уїхав
+                    robot->direction = glm::vec2(0.f);
+                }
+            }
+
+            if (isEditMode) {
+                ImGui::Indent(); // Зсув вправо для візуального порядку
+
+                // Вибір типу об'єкта
+                ImGui::RadioButton("Circle", &selectedObstacleType, 0); ImGui::SameLine();
+                ImGui::RadioButton("Rectangle", &selectedObstacleType, 1);
+
+                // Налаштування геометричних розмірів залежно від вибору
+                if (selectedObstacleType == 0) {
+                    ImGui::SliderFloat("Radius##New", &newCircleRadius, 10.0f, 150.0f);
+                } else {
+                    ImGui::SliderFloat("Width##New", &newRectWidth, 10.0f, 300.0f);
+                    ImGui::SliderFloat("Height##New", &newRectHeight, 10.0f, 300.0f);
+                }
+
+                // Налаштування стилю (матеріалу) для майбутнього об'єкта
+                ImGui::Combo("Draw Mode##New", &newDrawMode, "Outline\0Fill\0FillAndOutline\0");
+                ImGui::ColorEdit4("Fill Color##New", newFillColor);
+                ImGui::ColorEdit4("Outline Color##New", newOutlineColor);
+                ImGui::SliderFloat("Line Width##New", &newLineWidth, 1.0f, 5.0f);
+
+                ImGui::Unindent();
+            }
+            ImGui::Separator();
+
             // 4. Система
             ImGui::TextColored(ImVec4(0.5f, 0.5f, 1.0f, 1.0f), "[ System ]");
             
@@ -192,6 +230,12 @@ void App::run() {
                 std::cout << "[App] Opening config file..." << std::endl;
                 // Запускаємо notepad.exe зі шляхом fullPath
                 ShellExecuteA(NULL, "open", "notepad.exe", fullPath.c_str(), NULL, SW_SHOW);
+            }
+
+            if (ImGui::Button("Save Map", ImVec2(150, 25))) {
+                if (scene) {
+                    ConfigLoader::saveScene("config.json", scene, winWidth, winHeight);
+                }
             }
             
             // Кнопка перезавантаження конфігурації
@@ -281,6 +325,56 @@ void App::processInput() {
     if (InputManager::isKeyPressed(window, GLFW_KEY_TAB)) {
         resetGuiPos = true;
     }
+
+    // --- ОБРАБОТКА МЫШИ ДЛЯ РЕДАКТОРА КАРТ ---
+    
+    // --- ОБРАБОТКА МЫШИ ДЛЯ РЕДАКТОРА КАРТ ---
+    if (ImGui::GetIO().WantCaptureMouse) {
+        return; 
+    }
+
+    static bool wasLeftPressed = false;
+    int leftMouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+
+    if (leftMouseState == GLFW_PRESS && !wasLeftPressed) {
+        wasLeftPressed = true;
+
+        // Клік обробляється ТІЛЬКИ якщо активовано режим редактора
+        if (isEditMode && scene) {
+            glm::vec2 worldMousePos = getScreenToWorldMousePos();
+            Obstacle* newObstacle = nullptr;
+
+            // 1. Створюємо об'єкт потрібної геометрії
+            if (selectedObstacleType == 0) {
+                newObstacle = new CircleObstacle(worldMousePos, newCircleRadius);
+            } else {
+                newObstacle = new RectObstacle(worldMousePos, newRectWidth, newRectHeight);
+            }
+
+            if (newObstacle) {
+                // 2. Переносимо налаштування матеріалу з UI в об'єкт
+                newObstacle->style.mode = static_cast<DrawMode>(newDrawMode);
+                newObstacle->style.lineWidth = newLineWidth;
+                newObstacle->style.fillColor = glm::vec4(newFillColor[0], newFillColor[1], newFillColor[2], newFillColor[3]);
+                newObstacle->style.outlineColor = glm::vec4(newOutlineColor[0], newOutlineColor[1], newOutlineColor[2], newOutlineColor[3]);
+
+                // 3. Додаємо об'єкт на карту в пам'ять
+                scene->getEnvironmentPointer()->addObstacle(newObstacle);
+                std::cout << "[Editor] Spawned new obstacle at: (" << worldMousePos.x << ", " << worldMousePos.y << ")" << std::endl;
+            }
+        }
+    } 
+    else if (leftMouseState == GLFW_RELEASE) {
+        wasLeftPressed = false;
+    }
+}
+
+glm::vec2 App::getScreenToWorldMousePos() {
+    double mouseX, mouseY;
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+    
+    // Зараз у нас 1 піксель = 1 юніт світу, тому повертаємо як є
+    return glm::vec2(static_cast<float>(mouseX), static_cast<float>(mouseY));
 }
 
 float App::computeDeltaTime() {
@@ -288,5 +382,10 @@ float App::computeDeltaTime() {
     float currentTime = glfwGetTime();
     float dt = currentTime - lastTime;
     lastTime = currentTime;
+    
+    if (dt > 0.1f) {
+        dt = 0.1f;
+    }
+
     return dt;
 }
