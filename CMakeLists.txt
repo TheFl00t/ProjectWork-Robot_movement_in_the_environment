@@ -45,6 +45,7 @@ add_executable(${PROJECT_NAME}
     src/view/Shader.cpp
     src/view/Renderer.cpp
     src/view/ShaderManager.cpp
+    src/view/GuiManager.cpp
     src/view/Mesh.h
     src/view/CircleMesh.cpp
     src/view/RectMesh.cpp
@@ -56,6 +57,7 @@ add_executable(${PROJECT_NAME}
     src/controller/InputManager.cpp
     src/controller/Scene.cpp
     src/controller/ConfigLoader.cpp
+    src/controller/MapEditor.cpp
 )
 
 # Якщо ми збираємо Release (фінальну версію), то приховуємо консоль
