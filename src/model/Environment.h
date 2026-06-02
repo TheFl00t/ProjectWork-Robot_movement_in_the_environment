@@ -20,4 +20,7 @@ public:
     
     // Обновленный метод детекции коллизий
     CollisionInfo checkCollisionResult(Robot* robot);
+
+    float getWidth() const { return width; }
+    float getHeight() const { return height; }
 };

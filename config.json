@@ -1,0 +1,47 @@
+{
+  "window": {
+    "width": 1024,
+    "height": 1024
+  },
+  "robot": {
+    "position": [400.0, 300.0],
+    "radius": 25.0,
+    "velocity": 250.0,
+    "style": {
+      "draw_mode": "FillAndOutline",
+      "fill_color": [0.0, 1.0, 0.0, 0.3],
+      "outline_color": [0.0, 1.0, 0.0, 1.0],
+      "line_width": 2.5
+    }
+  },
+  "arena": {
+    "width": 980.0,
+    "height": 700.0,
+    "position": [20.0, 20.0]
+  },
+  "obstacles": [
+    {
+      "type": "circle",
+      "position": [200.0, 250.0],
+      "radius": 50.0,
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [0.5, 0.5, 0.5, 0.4],
+        "outline_color": "#ffffff",
+        "line_width": 1.5
+      }
+    },
+    {
+      "type": "rect",
+      "position": [600.0, 150.0],
+      "width": 120.0,
+      "height": 80.0,
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [0.5, 0.5, 0.5, 0.4],
+        "outline_color": [1.0, 1.0, 1.0, 1.0],
+        "line_width": 1.5
+      }
+    }
+  ]
+}

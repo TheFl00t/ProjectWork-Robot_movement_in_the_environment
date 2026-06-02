@@ -12,10 +12,10 @@ enum class DrawMode {
 
 // Структура стану візуалу (Матеріал)
 struct RenderStyle {
-    DrawMode mode          = DrawMode::Outline;
-    glm::vec4 fillColor    = glm::vec4(1.0f); // Колір заливки
-    glm::vec4 outlineColor = glm::vec4(1.0f); // Колір контуру
-    float lineWidth        = 1.0f;            // Товщина ліній контуру
+    DrawMode mode = DrawMode::Outline;
+    glm::vec4 fillColor = glm::vec4(1.0f);      // Колір заливки
+    glm::vec4 outlineColor = glm::vec4(1.0f);   // Колір контуру
+    float lineWidth = 1.0f;                     // Товщина ліній контуру
 };
 
 class Entity {

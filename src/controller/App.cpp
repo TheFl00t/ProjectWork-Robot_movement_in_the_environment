@@ -22,7 +22,7 @@ void App::run() {
 
     // Зчитуємо розміри з конфігу
     int winWidth, winHeight;
-    ConfigLoader::loadWindowSize("config.cfg", winWidth, winHeight);
+    ConfigLoader::loadWindowSize("config.json", winWidth, winHeight);
 
     // Отримуємо розміри монітора
     GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
@@ -79,7 +79,7 @@ void App::run() {
     renderer->applyProjectionToAllShaders();
 
     // Завантажуємо сцену
-    Scene* scene = ConfigLoader::loadScene("config.cfg", winWidth, winHeight);
+    Scene* scene = ConfigLoader::loadScene("config.json", winWidth, winHeight);
     this->robot = scene->getRobot();
 
     // Налаштування OpenGL
@@ -187,7 +187,7 @@ void App::run() {
 
             if (ImGui::Button("Open Config File", ImVec2(150, 25))) {   
                 // Отримуємо повний шлях до файлу
-                std::string fullPath = ConfigLoader::getConfigPath("config.cfg");
+                std::string fullPath = ConfigLoader::getConfigPath("config.json");
                 
                 std::cout << "[App] Opening config file..." << std::endl;
                 // Запускаємо notepad.exe зі шляхом fullPath
@@ -200,7 +200,7 @@ void App::run() {
         
                 // 1. Зчитуємо нові розміри вікна з файлу
                 int newW, newH;
-                ConfigLoader::loadWindowSize("config.cfg", newW, newH);
+                ConfigLoader::loadWindowSize("config.json", newW, newH);
 
                 // 2. Обмежуємо розміри
                 GLFWmonitor* monitor = glfwGetPrimaryMonitor();
@@ -227,14 +227,19 @@ void App::run() {
                     std::cout << "[App] Window resized to: " << winWidth << "x" << winHeight << std::endl;
                 }
 
-                // 4. Видаляємо стару сцену
-                delete scene;
+                // 4. Спочатку завантажуємо нову сцену в тимчасову змінну
+                Scene* newScene = ConfigLoader::loadScene("config.json", winWidth, winHeight);
                 
-                // 5. Завантажуємо нову сцену (з новими winWidth/winHeight)
-                scene = ConfigLoader::loadScene("config.cfg", winWidth, winHeight);
-                
-                // Оновлюємо посилання на робота
-                this->robot = scene->getRobot();
+                // 5. Перевіряємо, чи не повернула функція нульовий вказівник через критичну помилку
+                if (newScene == nullptr) {
+                    std::cerr << "[App] Reload cancelled. Configuration file failed to load." << std::endl;
+                } else {
+                    // Тільки тепер, коли ми впевнені, що нова сцена готова, видаляємо стару
+                    delete scene;
+                    scene = newScene;
+                    this->robot = scene->getRobot();
+                    std::cout << "[App] Scene successfully updated!" << std::endl;
+                }
             }
 
             ImGui::End();

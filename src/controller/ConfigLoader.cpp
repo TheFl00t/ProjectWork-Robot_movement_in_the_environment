@@ -1,185 +1,212 @@
 #include "ConfigLoader.h"
+#include "../model/CircleObstacle.h"
+#include "../model/RectObstacle.h"
 
 namespace fs = std::filesystem;
 
-// Внутрішні типи для парсингу
-enum ConfigType { TYPE_UNKNOWN, TYPE_WINDOW, TYPE_ENV, TYPE_ROBOT, TYPE_CIRCLE, TYPE_RECT };
-enum AlignMode { ALIGN_CUSTOM, ALIGN_TOP_LEFT, ALIGN_TOP_RIGHT, ALIGN_BOTTOM_LEFT, ALIGN_BOTTOM_RIGHT, ALIGN_CENTER };
-
-// Допоміжна функція: String -> ConfigType
-ConfigType stringToConfigType(const std::string& str) {
-    if (str == "WINDOW") return TYPE_WINDOW;
-    if (str == "ENV")    return TYPE_ENV;
-    if (str == "ROBOT")  return TYPE_ROBOT;
-    if (str == "CIRCLE") return TYPE_CIRCLE;
-    if (str == "RECT")   return TYPE_RECT;
-    return TYPE_UNKNOWN;
-}
-
-// Допоміжна функція: String -> AlignMode
-AlignMode stringToAlignMode(const std::string& str) {
-    if (str == "CENTER")       return ALIGN_CENTER;
-    if (str == "TOP_LEFT")     return ALIGN_TOP_LEFT;
-    if (str == "TOP_RIGHT")    return ALIGN_TOP_RIGHT;
-    if (str == "BOTTOM_LEFT")  return ALIGN_BOTTOM_LEFT;
-    if (str == "BOTTOM_RIGHT") return ALIGN_BOTTOM_RIGHT;
-    return ALIGN_CUSTOM;
-}
-
 std::string ConfigLoader::getConfigPath(const std::string& fileName, bool showLog) {
-    fs::path currentPath = fs::current_path();
-    
-    std::vector<fs::path> searchPaths = {
-        currentPath / fileName,
-        currentPath / ".." / ".." / fileName, // Исправлено на кроссплатформенный вариант
-        currentPath / "src" / fileName
-    };
+    std::string path = std::filesystem::absolute(fileName).string();
+    if (showLog) {
+        std::cout << "[ConfigLoader] Absolute path to config: " << path << std::endl;
+    }
+    return path;
+}
 
-    for (const auto& path : searchPaths) {
-        if (fs::exists(path)) {
-            if (showLog) {
-                std::cout << "[ConfigLoader] Found config at: " << path.string() << std::endl;
+std::string ConfigLoader::drawModeToString(DrawMode mode) {
+    if (mode == DrawMode::Fill) return "Fill";
+    if (mode == DrawMode::FillAndOutline) return "FillAndOutline";
+    return "Outline";
+}
+
+DrawMode ConfigLoader::stringToDrawMode(const std::string& str) {
+    if (str == "Fill") return DrawMode::Fill;
+    if (str == "FillAndOutline") return DrawMode::FillAndOutline;
+    return DrawMode::Outline;
+}
+
+glm::vec4 ConfigLoader::parseColor(const json& colorData) {
+    // Дефолтний колір — білий, якщо щось піде не так
+    glm::vec4 color(1.0f);
+
+    // Варіант 1: Користувач передав масив [R, G, B, A] або [R, G, B] у флоатах
+    if (colorData.is_array() && colorData.size() >= 3) {
+        color.r = colorData[0];
+        color.g = colorData[1];
+        color.b = colorData[2];
+        color.a = (colorData.size() == 4) ? static_cast<float>(colorData[3]) : 1.0f;
+    } 
+    // Варіант 2: Користувач передав рядок виду "#ffffff" або "#ffffffaa"
+    else if (colorData.is_string()) {
+        std::string hexStr = colorData.get<std::string>();
+        if (!hexStr.empty() && hexStr[0] == '#') {
+            hexStr = hexStr.substr(1); // Вирізаємо символ '#'
+
+            // Перевіряємо довжину (6 символів для RGB або 8 для RGBA)
+            if (hexStr.length() == 6 || hexStr.length() == 8) {
+                try {
+                    // Конвертуємо по 2 символи з шістнадцяткової системи в int (0-255)
+                    unsigned int r = std::stoul(hexStr.substr(0, 2), nullptr, 16);
+                    unsigned int g = std::stoul(hexStr.substr(2, 2), nullptr, 16);
+                    unsigned int b = std::stoul(hexStr.substr(4, 2), nullptr, 16);
+                    unsigned int a = 255; // За замовчуванням непрозорий
+
+                    if (hexStr.length() == 8) {
+                        a = std::stoul(hexStr.substr(6, 2), nullptr, 16);
+                    }
+
+                    // Переводим у діапазон OpenGL [0.0f, 1.0f]
+                    color = glm::vec4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+                } catch (...) {
+                    std::cerr << "[ConfigLoader] Invalid HEX color format: #" << hexStr << std::endl;
+                }
             }
-            return path.string();
         }
     }
-
-    std::cerr << "[ConfigLoader] ERROR: Config file '" << fileName << "' not found!" << std::endl;
-    return "";
-} // Обробимо далi
+    return color;
+}
 
 void ConfigLoader::loadWindowSize(const std::string& fileName, int& width, int& height) {
-    width = 800; height = 600; // Default
-    std::string fullPath = getConfigPath(fileName, false);
-    if (fullPath.empty()) return;
-
-    std::ifstream file(fullPath);
+    width = 1024;  // Значення за замовчуванням, якщо файл відсутній або пошкоджений
+    height = 768;
+    
+    std::ifstream file(fileName);
     if (!file.is_open()) return;
 
-    bool found = false;
-    std::string line;
-    while (std::getline(file, line)) {
-        if (line.empty() || line[0] == '#') continue;
-
-        std::stringstream ss(line);
-        std::string typeStr; 
-        ss >> typeStr;
-
-        if (stringToConfigType(typeStr) == TYPE_WINDOW) {
-            ss >> width >> height;
-            found = true;
-            break;
+    try {
+        json data = json::parse(file);
+        if (data.contains("window")) {
+            width = data["window"]["width"];
+            height = data["window"]["height"];
         }
+    } catch (json::parse_error& e) {
+        std::cerr << "[ConfigLoader] JSON parse error in loadWindowSize: " << e.what() << std::endl;
     }
-    width = std::clamp(width, 800, INT16_MAX);
-    height = std::clamp(height, 600, INT16_MAX);
-    file.close();
 }
 
 Scene* ConfigLoader::loadScene(const std::string& fileName, int winWidth, int winHeight) {
-    std::string fullPath = getConfigPath(fileName);
-    std::ifstream file;
-    if (!fullPath.empty()) file.open(fullPath);
-
-    // Default
-    float envW = 800.0f, envH = 600.0f;
-    glm::vec2 envPos(0.0f, 0.0f);
-
+    std::ifstream file(fileName);
     if (!file.is_open()) {
-        std::cerr << "[ConfigLoader] Loading DEFAULT scene." << std::endl;
-        Environment* env = new Environment(envPos, envW, envH);
-        Robot* rob = new Robot(glm::vec2(400,300), 30, 100);
-        return new Scene(rob, env);
+        std::cerr << "[ConfigLoader] Could not open config file: " << fileName << ". Creating default scene." << std::endl;
+        Robot* r = new Robot(glm::vec2(winWidth * 0.5f, winHeight * 0.5f), 25.f, 200.f);
+        Environment* env = new Environment(glm::vec2(20.f, 20.f), winWidth - 40.f, winHeight - 40.f);
+        return new Scene(r, env);
     }
 
-    Environment* env = nullptr;
-    Robot* robot = nullptr;
+    try {
+        json data = json::parse(file);
 
-    std::string line;
-    while (std::getline(file, line)) {
-        if (line.empty() || line[0] == '#') continue; 
-        std::stringstream ss(line);
-        std::string typeStr; 
-        ss >> typeStr;
-
-        switch (stringToConfigType(typeStr)) {
-            case TYPE_ENV: {
-                ss >> envW >> envH;
-                std::string alignStr;
-                AlignMode mode = ALIGN_TOP_LEFT;
-                
-                if (ss >> alignStr) 
-                    mode = stringToAlignMode(alignStr);
-
-                envW = fabs(envW);
-                envH = fabs(envH);
-                // Розрахунок позиції середовища
-                switch (mode) {
-                    case ALIGN_CENTER:
-                        envPos.x = (winWidth - envW) / 2.0f;
-                        envPos.y = (winHeight - envH) / 2.0f;
-                        break;
-                    case ALIGN_TOP_RIGHT:
-                        envPos.x = winWidth - envW; envPos.y = 0.0f; break;
-                    case ALIGN_BOTTOM_LEFT:
-                        envPos.x = 0.0f; envPos.y = winHeight - envH; break;
-                    case ALIGN_BOTTOM_RIGHT:
-                        envPos.x = winWidth - envW; envPos.y = winHeight - envH; break;
-                    default: envPos = glm::vec2(0,0); break;
-                }
-                
-                // Перевірка, щоб середовище не виходило за вікно
-                envPos.x = std::clamp(envPos.x, 0.0f, (float)winWidth - envW);
-                envPos.y = std::clamp(envPos.y, 0.0f, (float)winHeight - envH);
-
-                env = new Environment(envPos, envW, envH);
-                break;
-            }
-            case TYPE_ROBOT: {
-                float x, y, r, v;
-                ss >> x >> y >> r >> v;
-                robot = new Robot(glm::vec2(x, y), std::clamp(r, 5.0f, 100.f), std::clamp(v, 5.0f, 600.f));
-                break;
-            }
-            case TYPE_CIRCLE: {
-                float x, y, r;
-                ss >> x >> y >> r;
-                if (env) env->addObstacle(new CircleObstacle(glm::vec2(x, y), r));
-                break;
-            }
-            case TYPE_RECT: {   
-                float x, y, w, h;
-                ss >> x >> y >> w >> h;
-                if (env) env->addObstacle(new RectObstacle(glm::vec2(x, y), w, h));
-                break;
-            }
-            default: break;
+        // 1. Завантаження параметрів робота
+        auto rData = data["robot"];
+        Robot* robot = new Robot(
+            glm::vec2(rData["position"][0], rData["position"][1]),
+            rData["radius"],
+            rData["velocity"]
+        );
+        if (rData.contains("style")) {
+            robot->style.mode = stringToDrawMode(rData["style"]["draw_mode"]);
+            robot->style.lineWidth = rData["style"]["line_width"];
+            // Використовуємо універсальний парсер замість прямих індексів масиву
+            robot->style.fillColor = parseColor(rData["style"]["fill_color"]);
+            robot->style.outlineColor = parseColor(rData["style"]["outline_color"]);
         }
+
+        // 2. Завантаження меж арени (Environment)
+        auto aData = data["arena"];
+        Environment* env = new Environment(
+            glm::vec2(aData["position"][0], aData["position"][1]),
+            aData["width"],
+            aData["height"]
+        );
+
+        // 3. Завантаження масиву перешкод
+        if (data.contains("obstacles") && data["obstacles"].is_array()) {
+            for (auto& obsData : data["obstacles"]) {
+                std::string type = obsData["type"];
+                glm::vec2 pos(obsData["position"][0], obsData["position"][1]);
+                Obstacle* obstacle = nullptr;
+
+                if (type == "circle") {
+                    obstacle = new CircleObstacle(pos, obsData["radius"]);
+                } else if (type == "rect") {
+                    obstacle = new RectObstacle(pos, obsData["width"], obsData["height"]);
+                }
+
+                // Якщо об'єкт успішно створено, парсимо його індивідуальний стиль
+                if (obstacle && obsData.contains("style")) {
+                    obstacle->style.mode = stringToDrawMode(obsData["style"]["draw_mode"]);
+                    obstacle->style.lineWidth = obsData["style"]["line_width"];
+                    // Використовуємо універсальний парсер замість прямих індексів масиву
+                    obstacle->style.fillColor = parseColor(obsData["style"]["fill_color"]);
+                    obstacle->style.outlineColor = parseColor(obsData["style"]["outline_color"]);
+                    env->addObstacle(obstacle);
+                }
+            }
+        }
+
+        return new Scene(robot, env);
+
+    } catch (json::parse_error& e) {
+        std::cerr << "[ConfigLoader] Fatal JSON parse error: " << e.what() << std::endl;
+        std::cerr << "[ConfigLoader] Config text is corrupted. Creating a clean default scene..." << std::endl;
+        
+        Robot* r = new Robot(glm::vec2(winWidth * 0.5f, winHeight * 0.5f), 25.f, 200.f);
+        Environment* env = new Environment(glm::vec2(20.f, 20.f), winWidth - 40.f, winHeight - 40.f);
+        return new Scene(r, env);
     }
-    file.close();
-    
+}
 
-    // Створення default об'єктів, якщо їх не було в файлі
-    if (!env) env = new Environment(envPos, envW, envH);
-    if (!robot) robot = new Robot(glm::vec2(100,100), 20, 100);
+void ConfigLoader::saveScene(const std::string& fileName, Scene* scene, int winWidth, int winHeight) {
+    if (!scene) return;
 
-    // Перевіряємо, чи не з'явився робот у стіні
-    float minX = envPos.x + robot->radius;
-    float maxX = envPos.x + envW - robot->radius;
-    float minY = envPos.y + robot->radius;
-    float maxY = envPos.y + envH - robot->radius;
+    json data;
 
-    if (minX > maxX) maxX = minX; 
-    if (minY > maxY) maxY = minY;
+    // 1. Збереження конфігурації вікна
+    data["window"]["width"] = winWidth;
+    data["window"]["height"] = winHeight;
 
-    glm::vec2 oldPos = robot->entityPos;
-    robot->entityPos.x = std::clamp(robot->entityPos.x, minX, maxX);
-    robot->entityPos.y = std::clamp(robot->entityPos.y, minY, maxY);
+    // 2. Збереження стану та стилю робота
+    Robot* robot = scene->getRobot();
+    data["robot"]["position"] = { robot->entityPos.x, robot->entityPos.y };
+    data["robot"]["radius"] = robot->radius;
+    data["robot"]["velocity"] = robot->velocity;
+    data["robot"]["style"]["draw_mode"] = drawModeToString(robot->style.mode);
+    data["robot"]["style"]["fill_color"] = { robot->style.fillColor.r, robot->style.fillColor.g, robot->style.fillColor.b, robot->style.fillColor.a };
+    data["robot"]["style"]["outline_color"] = { robot->style.outlineColor.r, robot->style.outlineColor.g, robot->style.outlineColor.b, robot->style.outlineColor.a };
+    data["robot"]["style"]["line_width"] = robot->style.lineWidth;
 
-    if (robot->entityPos != oldPos) {
-        std::cout << "[ConfigLoader] Warning: Robot moved inside environment bounds." << std::endl;
-        robot->startPos = robot->entityPos; // Оновлюємо стартову позицію
+    // 3. Збереження параметрів арени
+    Environment* env = scene->getEnvironmentPointer();
+    data["arena"]["position"] = { env->entityPos.x, env->entityPos.y };
+    data["arena"]["width"] = env->getWidth();
+    data["arena"]["height"] = env->getHeight();
+
+    // 4. Серіалізація всіх динамічних перешкод у масив JSON
+    data["obstacles"] = json::array();
+    for (auto* obs : env->getObstacles()) {
+        json obsData;
+        obsData["position"] = { obs->entityPos.x, obs->entityPos.y };
+        obsData["style"]["draw_mode"] = drawModeToString(obs->style.mode);
+        obsData["style"]["fill_color"] = { obs->style.fillColor.r, obs->style.fillColor.g, obs->style.fillColor.b, obs->style.fillColor.a };
+        obsData["style"]["outline_color"] = { obs->style.outlineColor.r, obs->style.outlineColor.g, obs->style.outlineColor.b, obs->style.outlineColor.a };
+        obsData["style"]["line_width"] = obs->style.lineWidth;
+
+        if (auto* circle = dynamic_cast<CircleObstacle*>(obs)) {
+            obsData["type"] = "circle";
+            obsData["radius"] = circle->radius;
+        } else if (auto* rect = dynamic_cast<RectObstacle*>(obs)) {
+            obsData["type"] = "rect";
+            obsData["width"] = rect->width;
+            obsData["height"] = rect->height;
+        }
+
+        data["obstacles"].push_back(obsData);
     }
 
-    return new Scene(robot, env);
+    std::ofstream file(fileName);
+    if (file.is_open()) {
+        file << data.dump(2);
+        std::cout << "[ConfigLoader] Scene successfully saved to " << fileName << std::endl;
+    } else {
+        std::cerr << "[ConfigLoader] Failed to open file for saving: " << fileName << std::endl;
+    }
 }

@@ -26,6 +26,7 @@ add_executable(${PROJECT_NAME}
     src/config.h
     src/main.cpp
     src/glad.c
+    src/json.hpp
 
     # ImGui
     ${IMGUI_FILES}
@@ -75,11 +76,11 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE ${GLFW3_LIBRARY} OpenGL::GL
 )
 
-# 1. Копіюємо файл config.cfg поруч із .exe
+# 1. Копіюємо файл config.json поруч із .exe
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_SOURCE_DIR}/config.cfg"
-    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/config.cfg"
+    "${CMAKE_SOURCE_DIR}/config.json"
+    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/config.json"
 )
 
 # 2. Копіюємо всю папку src/shaders у папку збірки (зберігаючи структуру src/shaders)
