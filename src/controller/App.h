@@ -1,51 +1,30 @@
 #pragma once
 
-// Підключення моделей
-#include "../model/Robot.h"
-#include "../model/CircleObstacle.h"
-#include "../model/RectObstacle.h"
-#include "../model/Point.h"
-
-// Підключення відображення
-#include "../view/Renderer.h"
-
-// Підключення контролерів
-#include "InputManager.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include "AppState.h"
 #include "Scene.h"
+#include "MapEditor.h"
+#include "../view/GuiManager.h"
 
 class App {
 private:
     GLFWwindow* window = nullptr;
-    Robot* robot = nullptr;
     Scene* scene = nullptr;
-    Renderer* renderer = nullptr;
-    
-    bool resetGuiPos = false;
+    MapEditor* mapEditor = nullptr;
+    GuiManager* guiManager = nullptr;
+    AppState state = AppState::Simulation;
 
-    // Обробка натискань клавіш
-    void processInput();
-    
-    // Розрахунок часу між кадрами
+    int winWidth = 1024;
+    int winHeight = 768;
+
     float computeDeltaTime();
-
+    void processInput();
     glm::vec2 getScreenToWorldMousePos();
 
-    // Состояние редактора
-    bool isEditMode = false;
-    int selectedObstacleType = 0; // 0 - Круг, 1 - Прямоугольник
-
-    // Параметры нового объекта
-    float newCircleRadius = 40.0f;
-    float newRectWidth = 80.0f;
-    float newRectHeight = 50.0f;
-
-    // Параметры стиля нового объекта
-    int newDrawMode = 2; // 0 - Outline, 1 - Fill, 2 - FillAndOutline
-    float newFillColor[4] = { 0.5f, 0.5f, 0.5f, 0.4f };
-    float newOutlineColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    float newLineWidth = 1.5f;
-    
 public:
-    // Головний метод запуску
+    App() = default;
+    ~App();
     void run();
 };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "../controller/AppState.h"
 #include "../controller/Scene.h"
@@ -7,9 +8,10 @@
 
 class GuiManager {
 public:
+    bool resetGuiPos = false;
+
     GuiManager() = default;
     ~GuiManager() = default;
 
-    // Отрисовка всего интерфейса в зависимости от текущего состояния
-    void render(GLFWwindow* window, Scene* scene, MapEditor* editor, AppState& currentState, int winWidth, int winHeight);
+    void render(GLFWwindow* window, Scene*& scene, MapEditor* editor, AppState& currentState, int& winWidth, int& winHeight);
 };
