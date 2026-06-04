@@ -20,6 +20,7 @@
 void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, AppState& currentState, int& winWidth, int& winHeight) {
     float padding = 10.0f;
     float menuBarOffset = 25.0f;
+    const float controlAlignX = 115.0f; // ИСПРАВЛЕНИЕ: Перенесено сюда, теперь переменная видна всей функции
     std::string configPath = ConfigLoader::getConfigPath("config.json", false);
 
     if (resetGuiPos) {
@@ -104,13 +105,10 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
         ImGui::EndMainMenuBar();
     }
 
-    // Якщо інтерфейс приховано через TAB або меню Window - не рендеримо бічні панелі
-    if (!showUi) return;
-
     // ============================================================
     // 2. SIMULATION WINDOW (Simulation Mode)
     // ============================================================
-    if (currentState == AppState::Simulation) {
+    if (showUi && currentState == AppState::Simulation) {
         float controlWidth = 320.0f;
         
         ImGui::SetNextWindowPos(ImVec2(screenW - controlWidth - padding, menuBarOffset + padding), resetControlPanel ? ImGuiCond_Always : ImGuiCond_FirstUseEver);
@@ -155,12 +153,13 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
             ImGui::Text("Radius:"); ImGui::SameLine(100);
             ImGui::SetNextItemWidth(-1);
             float tempRobotRadius = robot->getRadius();
-            if (ImGui::SliderFloat("##Radius", &tempRobotRadius, 5.0f, 100.0f, "%.1f")) {
+            if (ImGui::SliderFloat("##Radius", &tempRobotRadius, 5.0f, 1000.0f, "%.1f")) {
                 robot->setRadius(tempRobotRadius);
             }
         }
         ImGui::Separator();
 
+        // [ Debug Settings ]
         ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "[ Debug Settings ]");
         ImGui::Checkbox("Collision Point", &scene->showCollisionPoint);
         ImGui::Checkbox("Velocity Vector", &scene->showVelocityVector);
@@ -209,15 +208,6 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
             }
         }
 
-        // 3.1 ВЕРТИКАЛЬНА ПАНЕЛЬ ІНСТРУМЕНТІВ ЗЛІВА
-        ImGui::SetNextWindowPos(ImVec2(padding, menuBarOffset + padding), ImGuiCond_Always);
-        ImGui::SetNextWindowSize(ImVec2(48, maxAvailableHeight), ImGuiCond_Always);
-        ImGui::Begin("##Toolbar", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
-        
-        EditorTool tools[] = { EditorTool::Select, EditorTool::Create };
-        const char* icons[] = { "[S]", "[C]" };
-        const char* tooltips[] = { "Select & Transform (Hold Ctrl for quick-select)", "Obstacle Creation Tool" };
-
         // ОБРОБКА ГАРЯЧИХ КЛАВІШ [S, C]
         if (!ImGui::GetIO().WantTextInput) {
             if (ImGui::IsKeyPressed(ImGuiKey_S)) {
@@ -227,302 +217,345 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
             }
         }
 
-        for (int i = 0; i < 2; i++) {
-            bool isActive = (editor->currentTool == tools[i]);
-            if (isActive) {
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.35f, 1.0f));
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.5f, 0.35f, 1.0f));
-            } else {
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+        // Вікна інтерфейсу малюємо лише за умови showUi == true
+        if (showUi) {
+            // 3.1 ВЕРТИКАЛЬНА ПАНЕЛЬ ІНСТРУМЕНТІВ ЗЛІВА
+            ImGui::SetNextWindowPos(ImVec2(padding, menuBarOffset + padding), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(48, maxAvailableHeight), ImGuiCond_Always);
+            ImGui::Begin("##Toolbar", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
+            
+            EditorTool tools[] = { EditorTool::Select, EditorTool::Create };
+            const char* icons[] = { "[S]", "[C]" };
+            const char* tooltips[] = { "Select & Transform (Hold Ctrl for quick-select)", "Obstacle Creation Tool" };
+
+            for (int i = 0; i < 2; i++) {
+                bool isActive = (editor->currentTool == tools[i]);
+                if (isActive) {
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.35f, 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.5f, 0.35f, 1.0f));
+                } else {
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+                }
+                
+                if (ImGui::Button(icons[i], ImVec2(32, 32))) {
+                    editor->currentTool = tools[i];
+                }
+                ImGui::PopStyleColor(2);
+
+                if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tooltips[i]);
+                ImGui::Spacing();
+            }
+            ImGui::End();
+
+            // 3.2 MAIN EDITOR WINDOW
+            float editorWidth = 360.0f; 
+            ImGui::SetNextWindowPos(ImVec2(screenW - editorWidth - padding, menuBarOffset + padding), resetEditorWorkspace ? ImGuiCond_Always : ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(editorWidth, maxAvailableHeight), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSizeConstraints(ImVec2(340, 420), ImVec2(600, maxAvailableHeight));
+
+            ImGui::Begin("Editor Workspace", NULL);
+
+            if (resetEditorWorkspace) resetEditorWorkspace = false;
+
+            // --- ОБМЕЖЕННЯ РОБОЧОЇ ОБЛАСТІ РЕДАКТОРА (З УРАХУВАННЯМ ПАНЕЛІ ІНСТРУМЕНТІВ) ---
+            ImVec2 posEd = ImGui::GetWindowPos();
+            ImVec2 sizeEd = ImGui::GetWindowSize();
+            ImVec2 clampedPosEd = posEd;
+
+            float minAllowedX = padding + 48.0f + padding; 
+
+            if (clampedPosEd.x < minAllowedX) clampedPosEd.x = minAllowedX;
+            if (clampedPosEd.x + sizeEd.x > screenW - padding) clampedPosEd.x = screenW - sizeEd.x - padding;
+            if (clampedPosEd.y < menuBarOffset + padding) clampedPosEd.y = menuBarOffset + padding;
+            if (clampedPosEd.y + sizeEd.y > screenH - padding) clampedPosEd.y = screenH - sizeEd.y - padding;
+
+            if (clampedPosEd.x != posEd.x || clampedPosEd.y != posEd.y) {
+                ImGui::SetWindowPos(clampedPosEd);
+            }
+
+            ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.8f, 1.0f), "[ Outliner ]");
+            ImGui::BeginChild("HierarchyTree", ImVec2(0, 130), true);
+
+            if (robot) {
+                bool flashActive = (flashTimer > 0.0f && flashTarget == robot);
+                if (flashActive) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
+                
+                if (ImGui::Selectable("System_Robot", currentSelected == robot)) {
+                    editor->setSelectedEntity(robot);
+                }
+                
+                if (flashActive) ImGui::PopStyleColor();
             }
             
-            if (ImGui::Button(icons[i], ImVec2(32, 32))) {
-                editor->currentTool = tools[i];
+            if (env) {
+                bool flashActive = (flashTimer > 0.0f && flashTarget == env);
+                if (flashActive) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
+                
+                if (ImGui::Selectable("System_Arena (Environment)", currentSelected == env)) {
+                    editor->setSelectedEntity(env);
+                }
+                
+                if (flashActive) ImGui::PopStyleColor();
             }
-            ImGui::PopStyleColor(2);
+            
+            ImGui::Separator();
+            for (size_t i = 0; i < obstacles.size(); ++i) {
+                std::string name = obstacles[i]->getTypeName() + "_" + std::to_string(i);
+                if (ImGui::Selectable(name.c_str(), currentSelected == obstacles[i])) {
+                    editor->setSelectedEntity(obstacles[i]);
+                }
+            }
+            ImGui::EndChild();
 
-            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tooltips[i]);
+            ImGui::Separator();
             ImGui::Spacing();
-        }
-        ImGui::End();
 
-        // 3.2 MAIN EDITOR WINDOW
-        float editorWidth = 360.0f; 
-        ImGui::SetNextWindowPos(ImVec2(screenW - editorWidth - padding, menuBarOffset + padding), resetEditorWorkspace ? ImGuiCond_Always : ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(editorWidth, maxAvailableHeight), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSizeConstraints(ImVec2(340, 420), ImVec2(600, maxAvailableHeight));
-
-        ImGui::Begin("Editor Workspace", NULL);
-
-        if (resetEditorWorkspace) resetEditorWorkspace = false;
-
-        // --- ОБМЕЖЕННЯ РОБОЧОЇ ОБЛАСТІ РЕДАКТОРА (З УРАХУВАННЯМ ПАНЕЛІ ІНСТРУМЕНТІВ) ---
-        ImVec2 posEd = ImGui::GetWindowPos();
-        ImVec2 sizeEd = ImGui::GetWindowSize();
-        ImVec2 clampedPosEd = posEd;
-
-        float minAllowedX = padding + 48.0f + padding; 
-
-        if (clampedPosEd.x < minAllowedX) clampedPosEd.x = minAllowedX;
-        if (clampedPosEd.x + sizeEd.x > screenW - padding) clampedPosEd.x = screenW - sizeEd.x - padding;
-        if (clampedPosEd.y < menuBarOffset + padding) clampedPosEd.y = menuBarOffset + padding;
-        if (clampedPosEd.y + sizeEd.y > screenH - padding) clampedPosEd.y = screenH - sizeEd.y - padding;
-
-        if (clampedPosEd.x != posEd.x || clampedPosEd.y != posEd.y) {
-            ImGui::SetWindowPos(clampedPosEd);
-        }
-
-        ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.8f, 1.0f), "[ Outliner ]");
-        ImGui::BeginChild("HierarchyTree", ImVec2(0, 130), true);
-
-        if (robot) {
-            // Ефект спалаху для Робота
-            bool flashActive = (flashTimer > 0.0f && flashTarget == robot);
-            if (flashActive) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
-            
-            if (ImGui::Selectable("System_Robot", currentSelected == robot)) {
-                editor->setSelectedEntity(robot);
-            }
-            
-            if (flashActive) ImGui::PopStyleColor();
-        }
-        
-        if (env) {
-            // Ефект спалаху для Арени
-            bool flashActive = (flashTimer > 0.0f && flashTarget == env);
-            if (flashActive) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.2f, 0.2f, 1.0f));
-            
-            if (ImGui::Selectable("System_Arena (Environment)", currentSelected == env)) {
-                editor->setSelectedEntity(env);
-            }
-            
-            if (flashActive) ImGui::PopStyleColor();
-        }
-        
-        ImGui::Separator();
-        for (size_t i = 0; i < obstacles.size(); ++i) {
-
-            std::string name = obstacles[i]->getTypeName() + "_" + std::to_string(i);
-            if (ImGui::Selectable(name.c_str(), currentSelected == obstacles[i])) {
-                editor->setSelectedEntity(obstacles[i]);
-            }
-        }
-        ImGui::EndChild();
-
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        const float controlAlignX = 115.0f;
-
-        // СЦЕНАРІЙ А: Інспектор активного виділеного об'єкта
-        if (currentSelected != nullptr) {
-            
-            // ВПРОВАДЖЕННЯ КНОПКИ DESELECT У РЯДОК ЗАГОЛОВКА
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "[ Active Inspector ]");
-            ImGui::SameLine(ImGui::GetWindowWidth() - 85);
-            if (ImGui::Button("Deselect", ImVec2(75, 20))) {
-                editor->setSelectedEntity(nullptr);
-                currentSelected = nullptr;
-            }
-
-            if (currentSelected != nullptr) { // Перевіряємо повторно на випадок, якщо щойно натиснули Deselect
-                // --- TRANSFORM ---
-                if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    ImGui::Spacing();
-                    
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::Text("Position:"); ImGui::SameLine(controlAlignX);
-                    ImGui::Text("X"); ImGui::SameLine();
-                    ImGui::SetNextItemWidth(80);
-                    ImGui::DragFloat("##PosX", &currentSelected->entityPos.x, 1.0f, -2000.0f, 4000.0f, "%.1f");
-                    
-                    ImGui::SameLine();
-                    ImGui::Text("Y"); ImGui::SameLine();
-                    ImGui::SetNextItemWidth(80);
-                    ImGui::DragFloat("##PosY", &currentSelected->entityPos.y, 1.0f, -2000.0f, 4000.0f, "%.1f");
-
-                    if (currentSelected == robot) {
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::Text("Velocity:"); ImGui::SameLine(controlAlignX);
-                        ImGui::SetNextItemWidth(-1);
-                        float tempRobotVelocity = robot->getVelocity();
-                        if (ImGui::SliderFloat("##Vel", &tempRobotVelocity, 0.0f, 600.0f, "%.1f")) {
-                            robot->setVelocity(tempRobotVelocity);
-                        }
-
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::Text("Radius:"); ImGui::SameLine(controlAlignX);
-                        ImGui::SetNextItemWidth(-1);
-                        float tempRobotRadius = robot->getRadius();
-                        if (ImGui::SliderFloat("##Rad", &tempRobotRadius, 5.0f, 100.0f, "%.1f")) {
-                            robot->setRadius(tempRobotRadius);
-                        }
-                    }
-                    else if (currentSelected == env) {
-                        float tempW = env->width;
-                        float tempH = env->height;
-                        bool sizeChanged = false;
-
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::Text("Arena Width:"); ImGui::SameLine(controlAlignX);
-                        ImGui::SetNextItemWidth(-1);
-                        sizeChanged |= ImGui::SliderFloat("##Width", &tempW, 200.0f, 2048.0f, "%.1f");
-
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::Text("Arena Height:"); ImGui::SameLine(controlAlignX);
-                        ImGui::SetNextItemWidth(-1);
-                        sizeChanged |= ImGui::SliderFloat("##Height", &tempH, 200.0f, 2048.0f, "%.1f");
-                        
-                        if (sizeChanged && env->getMesh()) {
-                            env->setDimensions(tempW, tempH);
-                        }
-                    }
-                    else if (auto* circle = dynamic_cast<CircleObstacle*>(currentSelected)) {
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::Text("Radius:"); ImGui::SameLine(controlAlignX);
-                        ImGui::SetNextItemWidth(-1);
-                        if (ImGui::SliderFloat("##CircleRad", &circle->radius, 5.0f, 200.0f, "%.1f")) {
-                            circle->updateMesh();
-                        }
-                    } 
-                    else if (auto* rect = dynamic_cast<RectObstacle*>(currentSelected)) {
-                        bool changed = false;
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::Text("Width:"); ImGui::SameLine(controlAlignX);
-                        ImGui::SetNextItemWidth(-1);
-                        changed |= ImGui::SliderFloat("##RectW", &rect->width, 10.0f, 500.0f, "%.1f");
-
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::Text("Height:"); ImGui::SameLine(controlAlignX);
-                        ImGui::SetNextItemWidth(-1);
-                        changed |= ImGui::SliderFloat("##RectH", &rect->height, 10.0f, 500.0f, "%.1f");
-                        
-                        if (changed) rect->updateMesh(); 
-                    }
-                    ImGui::Spacing();
+            // Інспектор активного виділеного об'єкта
+            if (currentSelected != nullptr) {
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "[ Active Inspector ]");
+                ImGui::SameLine(ImGui::GetWindowWidth() - 85);
+                if (ImGui::Button("Deselect", ImVec2(75, 20))) {
+                    editor->setSelectedEntity(nullptr);
+                    currentSelected = nullptr;
                 }
 
-                // --- APPEARANCE ---
-                if (ImGui::CollapsingHeader("Appearance", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    ImGui::Spacing();
-                    
-                    if (currentSelected == env) {
-                        // Безпечний вивід для Арени: тільки колір рамок та товщина ліній (без Fill)
+                if (currentSelected != nullptr) {
+                    if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+                        ImGui::Spacing();
+                        
                         ImGui::AlignTextToFramePadding();
-                        ImGui::Text("Outline Color:"); ImGui::SameLine(controlAlignX);
-                        ImGui::SetNextItemWidth(-1);
-                        ImGui::ColorEdit4("##OutlineTint", &env->style.outlineColor.r);
+                        ImGui::Text("Position:"); ImGui::SameLine(controlAlignX);
+                        ImGui::Text("X"); ImGui::SameLine();
+                        ImGui::SetNextItemWidth(80);
+                        ImGui::DragFloat("##PosX", &currentSelected->entityPos.x, 1.0f, -2000.0f, 4000.0f, "%.1f");
+                        
+                        ImGui::SameLine();
+                        ImGui::Text("Y"); ImGui::SameLine();
+                        ImGui::SetNextItemWidth(80);
+                        ImGui::DragFloat("##PosY", &currentSelected->entityPos.y, 1.0f, -2000.0f, 4000.0f, "%.1f");
 
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::Text("Outline Width:"); ImGui::SameLine(controlAlignX);
-                        ImGui::SetNextItemWidth(-1);
-                        ImGui::SliderFloat("##LineWidth", &env->style.lineWidth, 1.0f, 5.0f, "%.1f");
-                    } 
-                    else {
-                        // Стандартний вивід для всіх інших перешкод та робота
-                        RenderStyle* activeStyle = (currentSelected == robot) ? &robot->style : &static_cast<Obstacle*>(currentSelected)->style;
-                        if (activeStyle) {
+                        if (currentSelected == robot) {
                             ImGui::AlignTextToFramePadding();
-                            ImGui::Text("Render Mode:"); ImGui::SameLine(controlAlignX);
+                            ImGui::Text("Velocity:"); ImGui::SameLine(controlAlignX);
                             ImGui::SetNextItemWidth(-1);
-                            int geomMode = static_cast<int>(activeStyle->mode);
-                            if (ImGui::Combo("##DrawMode", &geomMode, "Outline\0Fill\0FillAndOutline\0")) {
-                                activeStyle->mode = static_cast<DrawMode>(geomMode);
+                            float tempRobotVelocity = robot->getVelocity();
+                            if (ImGui::SliderFloat("##Vel", &tempRobotVelocity, 0.0f, 600.0f, "%.1f")) {
+                                robot->setVelocity(tempRobotVelocity);
                             }
 
                             ImGui::AlignTextToFramePadding();
-                            ImGui::Text("Fill Color:"); ImGui::SameLine(controlAlignX);
+                            ImGui::Text("Radius:"); ImGui::SameLine(controlAlignX);
                             ImGui::SetNextItemWidth(-1);
-                            ImGui::ColorEdit4("##FillTint", &activeStyle->fillColor.r);
+                            float tempRobotRadius = robot->getRadius();
+                            if (ImGui::SliderFloat("##Rad", &tempRobotRadius, 5.0f, 1000.0f, "%.1f")) {
+                                robot->setRadius(tempRobotRadius);
+                            }
+                        }
+                        else if (currentSelected == env) {
+                            float tempW = env->width;
+                            float tempH = env->height;
+                            bool sizeChanged = false;
 
+                            ImGui::AlignTextToFramePadding();
+                            ImGui::Text("Arena Width:"); ImGui::SameLine(controlAlignX);
+                            ImGui::SetNextItemWidth(-1);
+                            sizeChanged |= ImGui::SliderFloat("##Width", &tempW, 100.0f, 2048.0f, "%.1f");
+
+                            ImGui::AlignTextToFramePadding();
+                            ImGui::Text("Arena Height:"); ImGui::SameLine(controlAlignX);
+                            ImGui::SetNextItemWidth(-1);
+                            sizeChanged |= ImGui::SliderFloat("##Height", &tempH, 100.0f, 2048.0f, "%.1f");
+                            
+                            if (sizeChanged) {
+                                env->setDimensions(tempW, tempH);
+                            }
+                        }
+                        else if (auto* circle = dynamic_cast<CircleObstacle*>(currentSelected)) {
+                            ImGui::AlignTextToFramePadding();
+                            ImGui::Text("Radius:"); ImGui::SameLine(controlAlignX);
+                            ImGui::SetNextItemWidth(-1);
+                            if (ImGui::SliderFloat("##CircleRad", &circle->radius, 5.0f, 1000.0f, "%.1f")) {
+                                circle->updateMesh();
+                            }
+                        } 
+                        else if (auto* rect = dynamic_cast<RectObstacle*>(currentSelected)) {
+                            bool changed = false;
+                            ImGui::AlignTextToFramePadding();
+                            ImGui::Text("Width:"); ImGui::SameLine(controlAlignX);
+                            ImGui::SetNextItemWidth(-1);
+                            changed |= ImGui::SliderFloat("##RectW", &rect->width, 10.0f, 1000.0f, "%.1f");
+
+                            ImGui::AlignTextToFramePadding();
+                            ImGui::Text("Height:"); ImGui::SameLine(controlAlignX);
+                            ImGui::SetNextItemWidth(-1);
+                            changed |= ImGui::SliderFloat("##RectH", &rect->height, 10.0f, 1000.0f, "%.1f");
+                            
+                            if (changed) rect->updateMesh(); 
+                        }
+                        ImGui::Spacing();
+                    }
+
+                    if (ImGui::CollapsingHeader("Appearance", ImGuiTreeNodeFlags_DefaultOpen)) {
+                        ImGui::Spacing();
+                        
+                        if (currentSelected == env) {
                             ImGui::AlignTextToFramePadding();
                             ImGui::Text("Outline Color:"); ImGui::SameLine(controlAlignX);
                             ImGui::SetNextItemWidth(-1);
-                            ImGui::ColorEdit4("##OutlineTint", &activeStyle->outlineColor.r);
+                            ImGui::ColorEdit4("##OutlineTint", &env->style.outlineColor.r);
 
                             ImGui::AlignTextToFramePadding();
                             ImGui::Text("Outline Width:"); ImGui::SameLine(controlAlignX);
                             ImGui::SetNextItemWidth(-1);
-                            ImGui::SliderFloat("##LineWidth", &activeStyle->lineWidth, 1.0f, 5.0f, "%.1f");
+                            ImGui::SliderFloat("##LineWidth", &env->style.lineWidth, 1.0f, 5.0f, "%.1f");
+                        } 
+                        else {
+                            RenderStyle* activeStyle = (currentSelected == robot) ? &robot->style : &static_cast<Obstacle*>(currentSelected)->style;
+                            if (activeStyle) {
+                                ImGui::AlignTextToFramePadding();
+                                ImGui::Text("Render Mode:"); ImGui::SameLine(controlAlignX);
+                                ImGui::SetNextItemWidth(-1);
+                                int geomMode = static_cast<int>(activeStyle->mode);
+                                if (ImGui::Combo("##DrawMode", &geomMode, "Outline\0Fill\0FillAndOutline\0")) {
+                                    activeStyle->mode = static_cast<DrawMode>(geomMode);
+                                }
+
+                                ImGui::AlignTextToFramePadding();
+                                ImGui::Text("Fill Color:"); ImGui::SameLine(controlAlignX);
+                                ImGui::SetNextItemWidth(-1);
+                                ImGui::ColorEdit4("##FillTint", &activeStyle->fillColor.r);
+
+                                ImGui::AlignTextToFramePadding();
+                                ImGui::Text("Outline Color:"); ImGui::SameLine(controlAlignX);
+                                ImGui::SetNextItemWidth(-1);
+                                ImGui::ColorEdit4("##OutlineTint", &activeStyle->outlineColor.r);
+
+                                ImGui::AlignTextToFramePadding();
+                                ImGui::Text("Outline Width:"); ImGui::SameLine(controlAlignX);
+                                ImGui::SetNextItemWidth(-1);
+                                ImGui::SliderFloat("##LineWidth", &activeStyle->lineWidth, 1.0f, 5.0f, "%.1f");
+                            }
+                        }
+                        ImGui::Spacing();
+                    }
+
+                    if (currentSelected != robot && currentSelected != env) {
+                        ImGui::Spacing();
+                        ImGui::Separator();
+                        if (ImGui::Button("Delete Object", ImVec2(-1, 25))) {
+                            env->removeObstacle(static_cast<Obstacle*>(currentSelected));
+                            editor->setSelectedEntity(nullptr);
                         }
                     }
-                    ImGui::Spacing();
                 }
+            } 
+            else if (editor->currentTool == EditorTool::Create) {
+                ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "[ Placement Options ]");
+                
+                ImGui::AlignTextToFramePadding();
+                ImGui::Text("Obstacle Type:"); ImGui::SameLine(controlAlignX);
+                ImGui::RadioButton("Circle", &editor->spawnObjectType, 0); ImGui::SameLine();
+                ImGui::RadioButton("Rectangle", &editor->spawnObjectType, 1);
+                ImGui::Separator();
 
-                if (currentSelected != robot && currentSelected != env) {
+                if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
                     ImGui::Spacing();
-                    ImGui::Separator();
-                    if (ImGui::Button("Delete Object", ImVec2(-1, 25))) {
-                        env->removeObstacle(static_cast<Obstacle*>(currentSelected));
-                        editor->setSelectedEntity(nullptr);
+                    if (editor->spawnObjectType == 0) {
+                        ImGui::AlignTextToFramePadding();
+                        ImGui::Text("Radius:"); ImGui::SameLine(controlAlignX);
+                        ImGui::SetNextItemWidth(-1);
+                        ImGui::SliderFloat("##RadiusTool", &editor->newCircleRadius, 10.0f, 150.0f, "%.1f");
+                    } else {
+                        ImGui::AlignTextToFramePadding();
+                        ImGui::Text("Width:"); ImGui::SameLine(controlAlignX);
+                        ImGui::SetNextItemWidth(-1);
+                        ImGui::SliderFloat("##WidthTool", &editor->newRectWidth, 10.0f, 300.0f, "%.1f");
+
+                        ImGui::AlignTextToFramePadding();
+                        ImGui::Text("Height:"); ImGui::SameLine(controlAlignX);
+                        ImGui::SetNextItemWidth(-1);
+                        ImGui::SliderFloat("##HeightTool", &editor->newRectHeight, 10.0f, 300.0f, "%.1f");
                     }
+                    ImGui::Spacing();
                 }
-            }
-        } 
-        // СЦЕНАРІЙ Б: Налаштування розміщення нових об'єктів
-        else if (editor->currentTool == EditorTool::Create) {
-            ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "[ Placement Options ]");
-            
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("Obstacle Type:"); ImGui::SameLine(controlAlignX);
-            ImGui::RadioButton("Circle", &editor->spawnObjectType, 0); ImGui::SameLine();
-            ImGui::RadioButton("Rectangle", &editor->spawnObjectType, 1);
-            ImGui::Separator();
 
-            if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-                ImGui::Spacing();
-                if (editor->spawnObjectType == 0) {
+                if (ImGui::CollapsingHeader("Appearance", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    ImGui::Spacing();
                     ImGui::AlignTextToFramePadding();
-                    ImGui::Text("Radius:"); ImGui::SameLine(controlAlignX);
+                    ImGui::Text("Render Mode:"); ImGui::SameLine(controlAlignX);
                     ImGui::SetNextItemWidth(-1);
-                    ImGui::SliderFloat("##RadiusTool", &editor->newCircleRadius, 10.0f, 150.0f, "%.1f");
-                } else {
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::Text("Width:"); ImGui::SameLine(controlAlignX);
-                    ImGui::SetNextItemWidth(-1);
-                    ImGui::SliderFloat("##WidthTool", &editor->newRectWidth, 10.0f, 300.0f, "%.1f");
+                    ImGui::Combo("##DrawModeTool", &editor->newDrawMode, "Outline\0Fill\0FillAndOutline\0");
 
                     ImGui::AlignTextToFramePadding();
-                    ImGui::Text("Height:"); ImGui::SameLine(controlAlignX);
+                    ImGui::Text("Fill Color:"); ImGui::SameLine(controlAlignX);
                     ImGui::SetNextItemWidth(-1);
-                    ImGui::SliderFloat("##HeightTool", &editor->newRectHeight, 10.0f, 300.0f, "%.1f");
+                    ImGui::ColorEdit4("##FillColorTool", editor->newFillColor);
+
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::Text("Outline Color:"); ImGui::SameLine(controlAlignX);
+                    ImGui::SetNextItemWidth(-1);
+                    ImGui::ColorEdit4("##OutlineColorTool", editor->newOutlineColor);
+
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::Text("Outline Width:"); ImGui::SameLine(controlAlignX);
+                    ImGui::SetNextItemWidth(-1);
+                    ImGui::SliderFloat("##LineWidthTool", &editor->newLineWidth, 1.0f, 5.0f, "%.1f");
+                    ImGui::Spacing();
                 }
+                
                 ImGui::Spacing();
+                ImGui::TextColored(ImVec4(0.2f, 0.6f, 1.0f, 1.0f), "* Left Click map workspace to add object.");
+            } 
+            else {
+                ImGui::TextUnformatted("Select an entity from Outliner\nor use the Object Tool to design maps.");
             }
-
-            if (ImGui::CollapsingHeader("Appearance", ImGuiTreeNodeFlags_DefaultOpen)) {
-                ImGui::Spacing();
-                ImGui::AlignTextToFramePadding();
-                ImGui::Text("Render Mode:"); ImGui::SameLine(controlAlignX);
-                ImGui::SetNextItemWidth(-1);
-                ImGui::Combo("##DrawModeTool", &editor->newDrawMode, "Outline\0Fill\0FillAndOutline\0");
-
-                ImGui::AlignTextToFramePadding();
-                ImGui::Text("Fill Color:"); ImGui::SameLine(controlAlignX);
-                ImGui::SetNextItemWidth(-1);
-                ImGui::ColorEdit4("##FillColorTool", editor->newFillColor);
-
-                ImGui::AlignTextToFramePadding();
-                ImGui::Text("Outline Color:"); ImGui::SameLine(controlAlignX);
-                ImGui::SetNextItemWidth(-1);
-                ImGui::ColorEdit4("##OutlineColorTool", editor->newOutlineColor);
-
-                ImGui::AlignTextToFramePadding();
-                ImGui::Text("Outline Width:"); ImGui::SameLine(controlAlignX);
-                ImGui::SetNextItemWidth(-1);
-                ImGui::SliderFloat("##LineWidthTool", &editor->newLineWidth, 1.0f, 5.0f, "%.1f");
-                ImGui::Spacing();
-            }
-            
-            ImGui::Spacing();
-            ImGui::TextColored(ImVec4(0.2f, 0.6f, 1.0f, 1.0f), "* Left Click map workspace to add object.");
-        } 
-        else {
-            ImGui::TextUnformatted("Select an entity from Outliner\nor use the Object Tool to design maps.");
+            ImGui::End();
         }
 
-        ImGui::End();
+        // ============================================================
+        // 4. SELECTION GIZMO & RESIZE
+        // ============================================================
+        if (currentSelected != nullptr) {
+            glm::vec2 minBounds(0.0f), maxBounds(0.0f);
+            
+            if (currentSelected->getBounds(minBounds, maxBounds)) {
+                float minX = minBounds.x, minY = minBounds.y;
+                float maxX = maxBounds.x, maxY = maxBounds.y;
+
+                ImDrawList* drawList = ImGui::GetForegroundDrawList();
+                ImVec2 mousePos = ImGui::GetMousePos();
+
+                ImU32 blueAccent = IM_COL32(0, 120, 215, 255);
+                ImU32 handleColor = IM_COL32(255, 255, 255, 255);
+
+                drawList->AddRect(ImVec2(minX, minY), ImVec2(maxX, maxY), blueAccent, 0.0f, 0, 1.5f);
+
+                ImVec2 handlePos(maxX, maxY);
+
+                ImGui::SetNextWindowPos(ImVec2(handlePos.x - 6, handlePos.y - 6));
+                ImGui::SetNextWindowSize(ImVec2(12, 12));
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+                ImGui::Begin("##GizmoHandleWin", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground);
+                
+                ImGui::InvisibleButton("##GizmoHandleBtn", ImVec2(12, 12));
+                bool isOverHandle = ImGui::IsItemHovered();
+                bool isDraggingGizmo = ImGui::IsItemActive();
+                
+                ImGui::End();
+                ImGui::PopStyleVar();
+
+                if (isDraggingGizmo) {
+                    currentSelected->resizeByGizmo(glm::vec2(mousePos.x, mousePos.y));
+                }
+
+                if (isDraggingGizmo)     handleColor = IM_COL32(0, 100, 180, 255);
+                else if (isOverHandle)   handleColor = IM_COL32(0, 140, 240, 255);
+
+                drawList->AddRectFilled(ImVec2(handlePos.x - 4, handlePos.y - 4), ImVec2(handlePos.x + 4, handlePos.y + 4), handleColor);
+                drawList->AddRect(ImVec2(handlePos.x - 4, handlePos.y - 4), ImVec2(handlePos.x + 4, handlePos.y + 4), blueAccent, 0.0f, 0, 1.0f);
+            }
+        }
     }
 }

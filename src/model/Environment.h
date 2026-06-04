@@ -21,6 +21,9 @@ public:
     void update(float dt) override;
     bool containsPoint(glm::vec2 point) override;
 
+    bool getBounds(glm::vec2& outMin, glm::vec2& outMax) const override;
+    void resizeByGizmo(const glm::vec2& mousePos) override;
+
     void setDimensions(float w, float h);
     
     // Обновленный метод детекции коллизий

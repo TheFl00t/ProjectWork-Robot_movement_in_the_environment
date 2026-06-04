@@ -37,4 +37,7 @@ public:
     Mesh* getMesh() const { return mesh; }
 
     virtual bool containsPoint(glm::vec2 point) { return false; }
+
+    virtual bool getBounds(glm::vec2& outMin, glm::vec2& outMax) const { return false; }
+    virtual void resizeByGizmo(const glm::vec2& mousePos) {}
 };

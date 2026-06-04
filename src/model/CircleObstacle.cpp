@@ -32,6 +32,18 @@ bool CircleObstacle::containsPoint(glm::vec2 point) {
     return glm::dot(dir, dir) <= (radius * radius);
 }
 
+bool CircleObstacle::getBounds(glm::vec2& outMin, glm::vec2& outMax) const {
+    outMin = entityPos - glm::vec2(radius);
+    outMax = entityPos + glm::vec2(radius);
+    return true;
+}
+
+void CircleObstacle::resizeByGizmo(const glm::vec2& mousePos) {
+    float calculatedRadius = mousePos.x - entityPos.x;
+    radius = std::clamp(calculatedRadius, 5.0f, 1000.0f);
+    updateMesh();
+}
+
 CollisionInfo CircleObstacle::checkCollisionResult(Robot* robot) {
     CollisionInfo info;
 

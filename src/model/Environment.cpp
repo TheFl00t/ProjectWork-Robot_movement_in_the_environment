@@ -42,12 +42,16 @@ bool Environment::containsPoint(glm::vec2 point) {
     return (nearLeft || nearRight || nearTop || nearBottom);
 }
 
-void Environment::removeObstacle(Obstacle* obs) {
-    auto it = std::find(obstacles.begin(), obstacles.end(), obs);
-    if (it != obstacles.end()) {
-        delete *it; // Викликається деструктор Obstacle, який видалить свій mesh
-        obstacles.erase(it);
-    }
+bool Environment::getBounds(glm::vec2& outMin, glm::vec2& outMax) const {
+    outMin = entityPos;
+    outMax = entityPos + glm::vec2(width, height);
+    return true;
+}
+
+void Environment::resizeByGizmo(const glm::vec2& mousePos) {
+    float calculatedW = mousePos.x - entityPos.x;
+    float calculatedH = mousePos.y - entityPos.y;
+    setDimensions(calculatedW, calculatedH);
 }
 
 void Environment::setDimensions(float w, float h) {
@@ -109,4 +113,12 @@ CollisionInfo Environment::checkCollisionResult(Robot* robot) {
     }
 
     return info;
+}
+
+void Environment::removeObstacle(Obstacle* obs) {
+    auto it = std::find(obstacles.begin(), obstacles.end(), obs);
+    if (it != obstacles.end()) {
+        delete *it; // Викликається деструктор Obstacle, який видалить свій mesh
+        obstacles.erase(it);
+    }
 }

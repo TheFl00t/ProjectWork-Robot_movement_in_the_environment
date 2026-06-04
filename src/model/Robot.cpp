@@ -26,8 +26,19 @@
         return glm::dot(dir, dir) <= (radius * radius);
     }
 
+    bool Robot::getBounds(glm::vec2& outMin, glm::vec2& outMax) const {
+        outMin = entityPos - glm::vec2(radius);
+        outMax = entityPos + glm::vec2(radius);
+        return true;
+    }
+
+    void Robot::resizeByGizmo(const glm::vec2& mousePos) {
+        float calculatedRadius = mousePos.x - entityPos.x;
+        setRadius(calculatedRadius);
+    }
+
     void Robot::setRadius(float newRadius) {
-        radius = std::clamp(newRadius, 0.0f, 1000.0f);
+        radius = std::clamp(newRadius, 5.0f, 1000.0f);
         if (circleMesh) {
             circleMesh->setRadius(radius);
         }

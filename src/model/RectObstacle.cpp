@@ -36,6 +36,22 @@ bool RectObstacle::containsPoint(glm::vec2 point) {
             point.y >= entityPos.y - hh && point.y <= entityPos.y + hh);
 }
 
+bool RectObstacle::getBounds(glm::vec2& outMin, glm::vec2& outMax) const {
+    float hw = width * 0.5f;
+    float hh = height * 0.5f;
+    outMin = entityPos - glm::vec2(hw, hh);
+    outMax = entityPos + glm::vec2(hw, hh);
+    return true;
+}
+
+void RectObstacle::resizeByGizmo(const glm::vec2& mousePos) {
+    float calculatedW = (mousePos.x - entityPos.x) * 2.0f;
+    float calculatedH = (mousePos.y - entityPos.y) * 2.0f;
+    width = std::clamp(calculatedW, 10.0f, 1000.0f);
+    height = std::clamp(calculatedH, 10.0f, 1000.0f);
+    updateMesh();
+}
+
 CollisionInfo RectObstacle::checkCollisionResult(Robot* robot) {
     CollisionInfo info;
 
