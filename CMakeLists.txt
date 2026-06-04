@@ -58,6 +58,7 @@ add_executable(${PROJECT_NAME}
     src/controller/Scene.cpp
     src/controller/ConfigLoader.cpp
     src/controller/MapEditor.cpp
+    src/controller/AppState.h
 )
 
 # Якщо ми збираємо Release (фінальну версію), то приховуємо консоль

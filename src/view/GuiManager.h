@@ -9,6 +9,9 @@
 class GuiManager {
 public:
     bool resetGuiPos = false;
+    bool resetControlPanel = false;
+    bool resetEditorWorkspace = false;
+    bool showUi = true;
 
     GuiManager() = default;
     ~GuiManager() = default;

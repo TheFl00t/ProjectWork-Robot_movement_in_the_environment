@@ -28,10 +28,18 @@ void RectObstacle::update(float dt) {
     // Прямокутна перешкода статична
 }
 
+bool RectObstacle::containsPoint(glm::vec2 point) {
+    float hw = width * 0.5f;
+    float hh = height * 0.5f;
+    
+    return (point.x >= entityPos.x - hw && point.x <= entityPos.x + hw &&
+            point.y >= entityPos.y - hh && point.y <= entityPos.y + hh);
+}
+
 CollisionInfo RectObstacle::checkCollisionResult(Robot* robot) {
     CollisionInfo info;
 
-    // Вычисляем границы прямоугольника на основе центра (entityPos) и полуразмеров
+    // Обчислюємо межі прямокутника на основі центру (entityPos) та напіврозмірів
     float hw = width * 0.5f;
     float hh = height * 0.5f;
     
@@ -50,10 +58,10 @@ CollisionInfo RectObstacle::checkCollisionResult(Robot* robot) {
 
     // Центр робота зовні або на межі прямокутника
     if (dist > 0.0f) {
-        if (dist < robot->radius) {
+        if (dist < robot->getRadius()) {
             info.collided = true;
             info.normal = dir / dist;
-            info.depth = robot->radius - dist;
+            info.depth = robot->getRadius() - dist;
             info.contactPoint = closestPoint;
         }
     } 
@@ -81,7 +89,7 @@ CollisionInfo RectObstacle::checkCollisionResult(Robot* robot) {
             info.normal = glm::vec2(0.0f, 1.0f);
             info.contactPoint = glm::vec2(robot->entityPos.x, bottom);
         }
-        info.depth = robot->radius + minDist;
+        info.depth = robot->getRadius() + minDist;
     }
 
     return info;

@@ -25,6 +25,29 @@ void Environment::update(float dt) {
     // Середовище статичне
 }
 
+bool Environment::containsPoint(glm::vec2 point) {
+    float left   = entityPos.x;
+    float right  = entityPos.x + width;
+    float top    = entityPos.y;
+    float bottom = entityPos.y + height;
+    float thickness = 8.0f;
+
+    bool nearLeft   = (point.x >= left - thickness && point.x <= left + thickness && point.y >= top && point.y <= bottom);
+    bool nearRight  = (point.x >= right - thickness && point.x <= right + thickness && point.y >= top && point.y <= bottom);
+    bool nearTop    = (point.y >= top - thickness && point.y <= top + thickness && point.x >= left && point.x <= right);
+    bool nearBottom = (point.y >= bottom - thickness && point.y <= bottom + thickness && point.x >= left && point.x <= right);
+
+    return (nearLeft || nearRight || nearTop || nearBottom);
+}
+
+void Environment::removeObstacle(Obstacle* obs) {
+    auto it = std::find(obstacles.begin(), obstacles.end(), obs);
+    if (it != obstacles.end()) {
+        delete *it; // Викликається деструктор Obstacle, який видалить свій mesh
+        obstacles.erase(it);
+    }
+}
+
 CollisionInfo Environment::checkCollisionResult(Robot* robot) {
     CollisionInfo info;
 
@@ -34,30 +57,30 @@ CollisionInfo Environment::checkCollisionResult(Robot* robot) {
     float bottom = entityPos.y + height;
 
     // 1. Перевірка зовнішніх меж арени (виштовхування всередину)
-    if (robot->entityPos.x - robot->radius < left) {
+    if (robot->entityPos.x - robot->getRadius() < left) {
         info.collided = true;
-        info.depth = left - (robot->entityPos.x - robot->radius);
+        info.depth = left - (robot->entityPos.x - robot->getRadius());
         info.normal = glm::vec2(1.0f, 0.0f);
         info.contactPoint = glm::vec2(left, robot->entityPos.y);
         return info;
     }
-    if (robot->entityPos.x + robot->radius > right) {
+    if (robot->entityPos.x + robot->getRadius() > right) {
         info.collided = true;
-        info.depth = (robot->entityPos.x + robot->radius) - right;
+        info.depth = (robot->entityPos.x + robot->getRadius()) - right;
         info.normal = glm::vec2(-1.0f, 0.0f);
         info.contactPoint = glm::vec2(right, robot->entityPos.y);
         return info;
     }
-    if (robot->entityPos.y - robot->radius < top) {
+    if (robot->entityPos.y - robot->getRadius() < top) {
         info.collided = true;
-        info.depth = top - (robot->entityPos.y - robot->radius);
+        info.depth = top - (robot->entityPos.y - robot->getRadius());
         info.normal = glm::vec2(0.0f, 1.0f);
         info.contactPoint = glm::vec2(robot->entityPos.x, top);
         return info;
     }
-    if (robot->entityPos.y + robot->radius > bottom) {
+    if (robot->entityPos.y + robot->getRadius() > bottom) {
         info.collided = true;
-        info.depth = (robot->entityPos.y + robot->radius) - bottom;
+        info.depth = (robot->entityPos.y + robot->getRadius()) - bottom;
         info.normal = glm::vec2(0.0f, -1.0f);
         info.contactPoint = glm::vec2(robot->entityPos.x, bottom);
         return info;

@@ -30,7 +30,7 @@ void App::run() {
     winHeight = std::clamp(winHeight, 600, mode->height);
 
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    window = glfwCreateWindow(winWidth, winHeight, "Robot Simulation & Map Editor", NULL, NULL);
+    window = glfwCreateWindow(winWidth, winHeight, "Robot Simulation", NULL, NULL);
     if (!window) { glfwTerminate(); return; }
     
     glfwMakeContextCurrent(window);
@@ -42,6 +42,11 @@ void App::run() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.Colors[ImGuiCol_WindowBg]  = ImVec4(0.094f, 0.094f, 0.094f, 0.7f);
+    style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.094f, 0.094f, 0.094f, 1.0f);
+    
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
@@ -65,7 +70,7 @@ void App::run() {
     while (!glfwWindowShouldClose(window)) {
         float dt = computeDeltaTime();
 
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.157f, 0.157f, 0.157f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         processInput();
@@ -80,7 +85,7 @@ void App::run() {
         }
 
         // Візуалізація світу
-        if (scene) scene->render(renderer);
+        if (scene) scene->render(renderer, state);
 
         // Візуалізація інтерфейсу користувача
         ImGui_ImplOpenGL3_NewFrame();
@@ -111,9 +116,13 @@ void App::processInput() {
         }
     }
 
-    if (InputManager::isKeyPressed(window, GLFW_KEY_TAB)) {
-        if (guiManager) guiManager->resetGuiPos = true;
+    // Тригер для одиночного натискання TAB
+    static bool wasTabPressed = false;
+    bool isTabDown = (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS);
+    if (isTabDown && !wasTabPressed) {
+        if (guiManager) guiManager->showUi = !guiManager->showUi; // Перемикаємо видимість вікон
     }
+    wasTabPressed = isTabDown;
 }
 
 glm::vec2 App::getScreenToWorldMousePos() {

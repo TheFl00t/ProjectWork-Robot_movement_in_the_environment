@@ -19,3 +19,19 @@ Robot::~Robot() {
 void Robot::update(float dt) {
     // Рух контролюється класом Scene
 }
+
+bool Robot::containsPoint(glm::vec2 point) {
+    glm::vec2 dir = point - entityPos;
+    return glm::dot(dir, dir) <= (radius * radius);
+}
+
+void Robot::setRadius(float newRadius) {
+    radius = std::clamp(newRadius, 0.0f, 1000.0f);
+    if (auto circleMesh = dynamic_cast<CircleMesh*>(mesh)) {
+        circleMesh->setRadius(radius);
+    }
+}
+
+void Robot::setVelocity(float newVelocity) {
+    velocity = std::clamp(newVelocity, 0.0f, 10000.0f);
+}

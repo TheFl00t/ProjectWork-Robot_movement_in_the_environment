@@ -8,9 +8,9 @@ class Robot;
 
 struct CollisionInfo {
     bool collided = false;
-    glm::vec2 normal = glm::vec2(0.0f);       // Направление от препятствия к роботу
-    glm::vec2 contactPoint = glm::vec2(0.0f); // Точка касания на поверхности
-    float depth = 0.0f;                       // Насколько глубоко робот зашел в текстуру
+    glm::vec2 normal = glm::vec2(0.0f);       // Напрямок від перешкоди до робота
+    glm::vec2 contactPoint = glm::vec2(0.0f); // Точка дотику на поверхні
+    float depth = 0.0f;                       // Наскільки глибоко робот зайшов у перешкоду
 };
 
 class Obstacle : public Entity {
@@ -26,4 +26,3 @@ protected:
     void initCircle(float radius, unsigned vertexCount = 360);
     void initRect(float width, float height);
 };
-

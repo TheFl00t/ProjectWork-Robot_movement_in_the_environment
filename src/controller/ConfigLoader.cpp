@@ -54,7 +54,7 @@ glm::vec4 ConfigLoader::parseColor(const json& colorData) {
                         a = std::stoul(hexStr.substr(6, 2), nullptr, 16);
                     }
 
-                    // Переводим у діапазон OpenGL [0.0f, 1.0f]
+                    // Переводимо у діапазон OpenGL [0.0f, 1.0f]
                     color = glm::vec4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
                 } catch (...) {
                     std::cerr << "[ConfigLoader] Invalid HEX color format: #" << hexStr << std::endl;
@@ -167,8 +167,8 @@ void ConfigLoader::saveScene(const std::string& fileName, Scene* scene, int winW
     // 2. Збереження стану та стилю робота
     Robot* robot = scene->getRobot();
     data["robot"]["position"] = { robot->entityPos.x, robot->entityPos.y };
-    data["robot"]["radius"] = robot->radius;
-    data["robot"]["velocity"] = robot->velocity;
+    data["robot"]["radius"] = robot->getRadius();
+    data["robot"]["velocity"] = robot->getVelocity();
     data["robot"]["style"]["draw_mode"] = drawModeToString(robot->style.mode);
     data["robot"]["style"]["fill_color"] = { robot->style.fillColor.r, robot->style.fillColor.g, robot->style.fillColor.b, robot->style.fillColor.a };
     data["robot"]["style"]["outline_color"] = { robot->style.outlineColor.r, robot->style.outlineColor.g, robot->style.outlineColor.b, robot->style.outlineColor.a };
@@ -177,8 +177,8 @@ void ConfigLoader::saveScene(const std::string& fileName, Scene* scene, int winW
     // 3. Збереження параметрів арени
     Environment* env = scene->getEnvironmentPointer();
     data["arena"]["position"] = { env->entityPos.x, env->entityPos.y };
-    data["arena"]["width"] = env->getWidth();
-    data["arena"]["height"] = env->getHeight();
+    data["arena"]["width"] = env->width;
+    data["arena"]["height"] = env->height;
 
     // 4. Серіалізація всіх динамічних перешкод у масив JSON
     data["obstacles"] = json::array();
@@ -195,7 +195,7 @@ void ConfigLoader::saveScene(const std::string& fileName, Scene* scene, int winW
             obsData["radius"] = circle->radius;
         } else if (auto* rect = dynamic_cast<RectObstacle*>(obs)) {
             obsData["type"] = "rect";
-            obsData["width"] = rect->width;
+            obsData["width"] = rect->width; 
             obsData["height"] = rect->height;
         }
 

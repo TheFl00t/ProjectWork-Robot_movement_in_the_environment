@@ -13,6 +13,7 @@ public:
 
     void updateMesh() override;
     void update(float dt) override;
+    bool containsPoint(glm::vec2 point) override;
 
     // Новый полиморфный метод расчета коллизии
     CollisionInfo checkCollisionResult(Robot* robot) override;

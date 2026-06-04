@@ -27,12 +27,17 @@ void CircleObstacle::update(float dt) {
     // ~
 }
 
+bool CircleObstacle::containsPoint(glm::vec2 point) {
+    glm::vec2 dir = point - entityPos;
+    return glm::dot(dir, dir) <= (radius * radius);
+}
+
 CollisionInfo CircleObstacle::checkCollisionResult(Robot* robot) {
     CollisionInfo info;
 
     glm::vec2 dir = robot->entityPos - this->entityPos;
     float dist = glm::length(dir);
-    float minDist = robot->radius + this->radius;
+    float minDist = robot->getRadius() + this->radius;
 
     if (dist < minDist) {
         info.collided = true;

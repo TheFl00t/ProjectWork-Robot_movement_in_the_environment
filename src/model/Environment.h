@@ -6,21 +6,21 @@
 
 class Environment : public Entity {
 private:
-    float width;
-    float height;
     std::vector<Obstacle*> obstacles;
 
 public:
+    float width;
+    float height;
+
     Environment(glm::vec2 pos, float width, float height);
     ~Environment();
 
     const std::vector<Obstacle*>& getObstacles() const { return obstacles; };
     void addObstacle(Obstacle* obs);
     void update(float dt) override;
+    bool containsPoint(glm::vec2 point) override;
     
     // Обновленный метод детекции коллизий
     CollisionInfo checkCollisionResult(Robot* robot);
-
-    float getWidth() const { return width; }
-    float getHeight() const { return height; }
+    void removeObstacle(Obstacle* obs);
 };

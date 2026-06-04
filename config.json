@@ -25,21 +25,21 @@
         "line_width": 1.5,
         "outline_color": [
           1.0,
-          1.0,
-          1.0,
+          0.0,
+          0.0,
           1.0
         ]
       },
       "type": "circle"
     },
     {
-      "height": 80.0,
+      "height": 168.89999389648438,
       "position": [
-        660.0,
-        190.0
+        778.0,
+        337.0
       ],
       "style": {
-        "draw_mode": "FillAndOutline",
+        "draw_mode": "Fill",
         "fill_color": [
           0.5,
           0.5,
@@ -55,7 +55,7 @@
         ]
       },
       "type": "rect",
-      "width": 120.0
+      "width": 219.1999969482422
     }
   ],
   "robot": {
@@ -63,7 +63,7 @@
       511.06707763671875,
       409.1272888183594
     ],
-    "radius": 25.0,
+    "radius": 30.0,
     "style": {
       "draw_mode": "FillAndOutline",
       "fill_color": [

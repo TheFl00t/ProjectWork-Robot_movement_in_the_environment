@@ -4,9 +4,11 @@
 #include "../view/CircleMesh.h"
 
 class Robot : public Entity {
-public:
+private:
     float radius;
     float velocity;
+
+public:
     glm::vec2 direction;
     
     // Значення для функції Reset
@@ -18,4 +20,11 @@ public:
     ~Robot();
 
     void update(float dt) override;
+    bool containsPoint(glm::vec2 point) override;
+
+    float getRadius() const { return radius; }
+    float getVelocity() const { return velocity; }
+
+    void setRadius(float newRadius);
+    void setVelocity(float newVelocity);
 };

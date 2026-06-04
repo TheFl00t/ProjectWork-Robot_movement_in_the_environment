@@ -54,3 +54,26 @@ void RectMesh::draw(GLenum topology) {
     glBindVertexArray(VAO);
     glDrawArrays(topology, 0, vertex_count);
 }
+
+void RectMesh::updateDimensions(float newWidth, float newHeight) {
+    width = newWidth;
+    height = newHeight;
+
+    std::vector<glm::vec2> vertices;
+    if (centered) {
+        float hw = width * 0.5f;
+        float hh = height * 0.5f;
+        vertices = {
+            glm::vec2(-hw, -hh), glm::vec2( hw, -hh),
+            glm::vec2( hw,  hh), glm::vec2(-hw,  hh)
+        };
+    } else {
+        vertices = {
+            glm::vec2(0.0f, 0.0f), glm::vec2(width, 0.0f),
+            glm::vec2(width, height), glm::vec2(0.0f, height)
+        };
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec2), vertices.data(), GL_STATIC_DRAW);
+}

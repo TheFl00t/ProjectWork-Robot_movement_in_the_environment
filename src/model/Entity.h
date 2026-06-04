@@ -35,4 +35,6 @@ public:
     // Робота з мешем об'єкта
     void setMesh(Mesh* m) { mesh = m; }
     Mesh* getMesh() const { return mesh; }
+
+    virtual bool containsPoint(glm::vec2 point) { return false; }
 };

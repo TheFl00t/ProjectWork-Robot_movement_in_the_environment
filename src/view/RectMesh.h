@@ -18,4 +18,6 @@ public:
 
     unsigned getVertexCount() const { return vertex_count; }
     void draw(GLenum topology) override;
+
+    void updateDimensions(float newWidth, float newHeight);
 };

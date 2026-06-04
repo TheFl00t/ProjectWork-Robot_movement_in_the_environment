@@ -8,16 +8,17 @@
 #include "MapEditor.h"
 #include "../view/GuiManager.h"
 
+/// @brief Головний клас додатку, що керує життєвим циклом програми (ініціалізація, цикл оновлення, рендеринг)
 class App {
 private:
-    GLFWwindow* window = nullptr;
-    Scene* scene = nullptr;
-    MapEditor* mapEditor = nullptr;
-    GuiManager* guiManager = nullptr;
-    AppState state = AppState::Simulation;
+    GLFWwindow* window = nullptr;           // Вказівник на вікно GLFW
+    Scene* scene = nullptr;                 // Сцена
+    MapEditor* mapEditor = nullptr;         // Редактор карти
+    GuiManager* guiManager = nullptr;       // Менеджер графічного інтерфейсу (ImGui)
+    AppState state = AppState::Simulation;  // Поточний стан (Симуляція або Редактор)
 
-    int winWidth = 1024;
-    int winHeight = 768;
+    int winWidth = 1024;                    // Ширина вікна
+    int winHeight = 768;                    // Висота вікна
 
     float computeDeltaTime();
     void processInput();
