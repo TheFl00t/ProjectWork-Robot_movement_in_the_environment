@@ -63,10 +63,10 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
         }
 
         if (ImGui::BeginMenu("View")) {
-            if (ImGui::MenuItem("Reset Camera View")) {
+            if (ImGui::MenuItem("Reset Camera View", nullptr, false, false)) {
                 // TODO: Reset scale and mouse drag offsets later
             }
-            if (ImGui::MenuItem("Center View on Robot")) {
+            if (ImGui::MenuItem("Center View on Robot", nullptr, false, false)) {
                 // TODO: Center camera framework on robot position
             }
             ImGui::EndMenu();
@@ -198,7 +198,7 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
         Entity* currentSelected = editor->getSelectedEntity();
 
         // ОБРОБКА ГАРЯЧОЇ КЛАВІШІ DELETE
-        if (ImGui::IsKeyPressed(ImGuiKey_Delete) && currentSelected) {
+        if (!ImGui::GetIO().WantTextInput && ImGui::IsKeyPressed(ImGuiKey_Delete) && currentSelected) {
             if (currentSelected == robot || currentSelected == env) {
                 flashTimer = 0.4f; // Вмикаємо червоний спалах на 400мс
                 flashTarget = currentSelected;
@@ -217,6 +217,15 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
         EditorTool tools[] = { EditorTool::Select, EditorTool::Create };
         const char* icons[] = { "[S]", "[C]" };
         const char* tooltips[] = { "Select & Transform (Hold Ctrl for quick-select)", "Obstacle Creation Tool" };
+
+        // ОБРОБКА ГАРЯЧИХ КЛАВІШ [S, C]
+        if (!ImGui::GetIO().WantTextInput) {
+            if (ImGui::IsKeyPressed(ImGuiKey_S)) {
+                editor->currentTool = EditorTool::Select;
+            } else if (ImGui::IsKeyPressed(ImGuiKey_C)) {
+                editor->currentTool = EditorTool::Create;
+            }
+        }
 
         for (int i = 0; i < 2; i++) {
             bool isActive = (editor->currentTool == tools[i]);
