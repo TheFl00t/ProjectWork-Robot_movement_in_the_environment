@@ -1,8 +1,12 @@
 #pragma once
 
+#include <string>
+#include "../json.hpp"
 #include "Entity.h"
 #include "../view/CircleMesh.h" 
 #include "../view/RectMesh.h"
+
+using json = nlohmann::json;
 
 class Robot;
 
@@ -20,6 +24,9 @@ public:
 
     virtual CollisionInfo checkCollisionResult(Robot* robot) = 0;
     virtual void updateMesh() = 0;
+
+    virtual std::string getTypeName() const = 0;
+    virtual void serialize(json& j) const = 0;
 
 protected:
     // Допоміжні методи ініціалізації

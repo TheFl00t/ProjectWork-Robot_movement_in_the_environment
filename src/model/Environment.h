@@ -7,6 +7,7 @@
 class Environment : public Entity {
 private:
     std::vector<Obstacle*> obstacles;
+    RectMesh* rectMesh = nullptr;
 
 public:
     float width;
@@ -19,6 +20,8 @@ public:
     void addObstacle(Obstacle* obs);
     void update(float dt) override;
     bool containsPoint(glm::vec2 point) override;
+
+    void setDimensions(float w, float h);
     
     // Обновленный метод детекции коллизий
     CollisionInfo checkCollisionResult(Robot* robot);

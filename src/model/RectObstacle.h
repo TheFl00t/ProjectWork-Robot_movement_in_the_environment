@@ -18,4 +18,7 @@ public:
     // Новый полиморфный метод расчета коллизии
     CollisionInfo checkCollisionResult(Robot* robot) override;
     bool containsPoint(glm::vec2 point) override;
+
+    std::string getTypeName() const override { return "Rectangle"; }
+    void serialize(json& j) const override;
 };

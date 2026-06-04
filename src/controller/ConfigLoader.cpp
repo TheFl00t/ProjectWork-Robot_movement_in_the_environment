@@ -190,15 +190,8 @@ void ConfigLoader::saveScene(const std::string& fileName, Scene* scene, int winW
         obsData["style"]["outline_color"] = { obs->style.outlineColor.r, obs->style.outlineColor.g, obs->style.outlineColor.b, obs->style.outlineColor.a };
         obsData["style"]["line_width"] = obs->style.lineWidth;
 
-        if (auto* circle = dynamic_cast<CircleObstacle*>(obs)) {
-            obsData["type"] = "circle";
-            obsData["radius"] = circle->radius;
-        } else if (auto* rect = dynamic_cast<RectObstacle*>(obs)) {
-            obsData["type"] = "rect";
-            obsData["width"] = rect->width; 
-            obsData["height"] = rect->height;
-        }
-
+        obs->serialize(obsData);
+        
         data["obstacles"].push_back(obsData);
     }
 

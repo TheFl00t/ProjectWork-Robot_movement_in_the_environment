@@ -94,3 +94,9 @@ CollisionInfo RectObstacle::checkCollisionResult(Robot* robot) {
 
     return info;
 }
+
+void RectObstacle::serialize(json& j) const {
+    j["type"] = "rect";
+    j["width"] = this->width;
+    j["height"] = this->height;
+}

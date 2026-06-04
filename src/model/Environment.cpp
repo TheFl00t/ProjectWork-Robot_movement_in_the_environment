@@ -1,9 +1,11 @@
 #include "Environment.h"
+#include <algorithm>
 
 Environment::Environment(glm::vec2 pos, float width, float height) 
     : Entity(pos), width(width), height(height) 
 {
-    setMesh(new RectMesh(width, height, false));
+    rectMesh = new RectMesh(width, height, false);
+    mesh = rectMesh;
 
     style.mode = DrawMode::Outline;
     style.outlineColor = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
@@ -46,6 +48,15 @@ void Environment::removeObstacle(Obstacle* obs) {
         delete *it; // Викликається деструктор Obstacle, який видалить свій mesh
         obstacles.erase(it);
     }
+}
+
+void Environment::setDimensions(float w, float h) {
+    width = std::clamp(w, 200.0f, 2048.0f);
+    height = std::clamp(h, 200.0f, 2048.0f);
+    
+    if (rectMesh) {
+        rectMesh->updateDimensions(width, height);
+    };
 }
 
 CollisionInfo Environment::checkCollisionResult(Robot* robot) {

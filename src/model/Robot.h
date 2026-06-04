@@ -7,6 +7,7 @@ class Robot : public Entity {
 private:
     float radius;
     float velocity;
+    CircleMesh* circleMesh = nullptr;
 
 public:
     glm::vec2 direction;

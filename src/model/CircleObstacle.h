@@ -17,4 +17,7 @@ public:
 
     // Новый полиморфный метод расчета коллизии
     CollisionInfo checkCollisionResult(Robot* robot) override;
+
+    std::string getTypeName() const override { return "Circle"; }
+    void serialize(json& j) const override;
 };

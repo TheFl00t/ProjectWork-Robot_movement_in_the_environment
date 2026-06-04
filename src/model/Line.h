@@ -4,6 +4,9 @@
 #include "../view/LineMesh.h"
 
 class Line : public Entity {
+private:
+    LineMesh* lineMesh = nullptr;
+
 public:
     Line();
     ~Line();

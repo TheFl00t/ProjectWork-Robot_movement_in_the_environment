@@ -3,7 +3,8 @@
 Line::Line() 
     : Entity(glm::vec2(0.0f, 0.0f))
 {
-    mesh = new LineMesh();
+    lineMesh = new LineMesh();
+    mesh = lineMesh;
 
     style.mode = DrawMode::Outline;
     style.outlineColor = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
@@ -15,7 +16,7 @@ Line::~Line() {
 }
 
 void Line::setPoints(glm::vec2 start, glm::vec2 end) {
-    if (auto lineMesh = dynamic_cast<LineMesh*>(mesh)) {
+    if (lineMesh) {
         lineMesh->updateLine(start, end);
     }
 }

@@ -273,7 +273,6 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
             ImGui::SetWindowPos(clampedPosEd);
         }
 
-        // ЗАМІНЕНО: Назву блоку змінено на Blender-style [ Outliner ]
         ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.8f, 1.0f), "[ Outliner ]");
         ImGui::BeginChild("HierarchyTree", ImVec2(0, 130), true);
 
@@ -303,7 +302,8 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
         
         ImGui::Separator();
         for (size_t i = 0; i < obstacles.size(); ++i) {
-            std::string name = dynamic_cast<CircleObstacle*>(obstacles[i]) ? "Circle_" + std::to_string(i) : "Rectangle_" + std::to_string(i);
+
+            std::string name = obstacles[i]->getTypeName() + "_" + std::to_string(i);
             if (ImGui::Selectable(name.c_str(), currentSelected == obstacles[i])) {
                 editor->setSelectedEntity(obstacles[i]);
             }
@@ -361,19 +361,22 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
                         }
                     }
                     else if (currentSelected == env) {
+                        float tempW = env->width;
+                        float tempH = env->height;
                         bool sizeChanged = false;
+
                         ImGui::AlignTextToFramePadding();
                         ImGui::Text("Arena Width:"); ImGui::SameLine(controlAlignX);
                         ImGui::SetNextItemWidth(-1);
-                        sizeChanged |= ImGui::SliderFloat("##Width", &env->width, 200.0f, 2048.0f, "%.1f");
+                        sizeChanged |= ImGui::SliderFloat("##Width", &tempW, 200.0f, 2048.0f, "%.1f");
 
                         ImGui::AlignTextToFramePadding();
                         ImGui::Text("Arena Height:"); ImGui::SameLine(controlAlignX);
                         ImGui::SetNextItemWidth(-1);
-                        sizeChanged |= ImGui::SliderFloat("##Height", &env->height, 200.0f, 2048.0f, "%.1f");
+                        sizeChanged |= ImGui::SliderFloat("##Height", &tempH, 200.0f, 2048.0f, "%.1f");
                         
                         if (sizeChanged && env->getMesh()) {
-                            if (auto m = dynamic_cast<RectMesh*>(env->getMesh())) m->updateDimensions(env->width, env->height); 
+                            env->setDimensions(tempW, tempH);
                         }
                     }
                     else if (auto* circle = dynamic_cast<CircleObstacle*>(currentSelected)) {

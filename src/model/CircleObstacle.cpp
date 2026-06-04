@@ -49,3 +49,8 @@ CollisionInfo CircleObstacle::checkCollisionResult(Robot* robot) {
 
     return info;
 }
+
+void CircleObstacle::serialize(json& j) const {
+    j["type"] = "circle";
+    j["radius"] = this->radius;
+}
