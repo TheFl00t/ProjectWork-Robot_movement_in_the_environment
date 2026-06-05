@@ -30,6 +30,10 @@ public:
         : entityPos(pos), mesh(nullptr) {};
     
     virtual ~Entity() {};
+
+    Entity(const Entity&) = delete;
+    Entity& operator=(const Entity&) = delete;
+
     virtual void update(float dt) = 0;
 
     // Робота з мешем об'єкта

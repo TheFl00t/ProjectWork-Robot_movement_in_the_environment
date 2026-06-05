@@ -376,23 +376,27 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
                             ImGui::AlignTextToFramePadding();
                             ImGui::Text("Radius:"); ImGui::SameLine(controlAlignX);
                             ImGui::SetNextItemWidth(-1);
-                            if (ImGui::SliderFloat("##CircleRad", &circle->radius, 5.0f, 1000.0f, "%.1f")) {
-                                circle->updateMesh();
+                            float r = circle->getRadius();
+                            if (ImGui::SliderFloat("##CircleRad", &r, 5.0f, 1000.0f, "%.1f")) {
+                                circle->setRadius(r);
                             }
-                        } 
+                        }
                         else if (auto* rect = dynamic_cast<RectObstacle*>(currentSelected)) {
                             bool changed = false;
+                            float w = rect->getWidth();
+                            float h = rect->getHeight();
+                            
                             ImGui::AlignTextToFramePadding();
                             ImGui::Text("Width:"); ImGui::SameLine(controlAlignX);
                             ImGui::SetNextItemWidth(-1);
-                            changed |= ImGui::SliderFloat("##RectW", &rect->width, 10.0f, 1000.0f, "%.1f");
+                            changed |= ImGui::SliderFloat("##RectW", &w, 10.0f, 1000.0f, "%.1f");
 
                             ImGui::AlignTextToFramePadding();
                             ImGui::Text("Height:"); ImGui::SameLine(controlAlignX);
                             ImGui::SetNextItemWidth(-1);
-                            changed |= ImGui::SliderFloat("##RectH", &rect->height, 10.0f, 1000.0f, "%.1f");
+                            changed |= ImGui::SliderFloat("##RectH", &h, 10.0f, 1000.0f, "%.1f");
                             
-                            if (changed) rect->updateMesh(); 
+                            if (changed) rect->setDimensions(w, h); 
                         }
                         ImGui::Spacing();
                     }

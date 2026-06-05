@@ -20,6 +20,8 @@ private:
     int winWidth = 1024;                    // Ширина вікна
     int winHeight = 768;                    // Висота вікна
 
+    bool imguiInitialized = false;
+
     float computeDeltaTime();
     void processInput();
     glm::vec2 getScreenToWorldMousePos();

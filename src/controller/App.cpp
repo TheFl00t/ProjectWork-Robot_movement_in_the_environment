@@ -10,11 +10,16 @@ App::~App() {
     delete mapEditor;
     delete guiManager;
     
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
+    if (imguiInitialized) {
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+    }
 
-    glfwDestroyWindow(window);
+    if (window) {
+        glfwDestroyWindow(window);
+    }
+    
     glfwTerminate();
 }
 
@@ -30,7 +35,12 @@ void App::run() {
     winHeight = std::clamp(winHeight, 600, mode->height);
 
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    if (winWidth == mode->width && winHeight == mode->height) {
+        glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    }
+
     window = glfwCreateWindow(winWidth, winHeight, "Robot Simulation", NULL, NULL);
+
     if (!window) { glfwTerminate(); return; }
     
     glfwMakeContextCurrent(window);
@@ -49,6 +59,8 @@ void App::run() {
     
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
+
+    imguiInitialized = true;
 
     // Завантаження ресурсів
     ShaderManager::getInstance()->loadShader("default", "shader.vert", "defaultShader.frag");

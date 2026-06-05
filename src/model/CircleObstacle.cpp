@@ -40,8 +40,7 @@ bool CircleObstacle::getBounds(glm::vec2& outMin, glm::vec2& outMax) const {
 
 void CircleObstacle::resizeByGizmo(const glm::vec2& mousePos) {
     float calculatedRadius = mousePos.x - entityPos.x;
-    radius = std::clamp(calculatedRadius, 5.0f, 1000.0f);
-    updateMesh();
+    setRadius(calculatedRadius);
 }
 
 CollisionInfo CircleObstacle::checkCollisionResult(Robot* robot) {
@@ -65,4 +64,9 @@ CollisionInfo CircleObstacle::checkCollisionResult(Robot* robot) {
 void CircleObstacle::serialize(json& j) const {
     j["type"] = "circle";
     j["radius"] = this->radius;
+}
+
+void CircleObstacle::setRadius(float newRadius) {
+    radius = std::clamp(newRadius, 5.0f, 1000.0f);
+    updateMesh();
 }

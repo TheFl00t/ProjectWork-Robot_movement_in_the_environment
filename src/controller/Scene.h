@@ -23,6 +23,9 @@ public:
     Scene(Robot* r, Environment* env);
     ~Scene();
 
+    Scene(const Scene&) = delete;
+    Scene& operator=(const Scene&) = delete;
+
     void update(float dt);           
     void render(Renderer* renderer, AppState state);
 

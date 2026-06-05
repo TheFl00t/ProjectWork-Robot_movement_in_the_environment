@@ -47,9 +47,7 @@ bool RectObstacle::getBounds(glm::vec2& outMin, glm::vec2& outMax) const {
 void RectObstacle::resizeByGizmo(const glm::vec2& mousePos) {
     float calculatedW = (mousePos.x - entityPos.x) * 2.0f;
     float calculatedH = (mousePos.y - entityPos.y) * 2.0f;
-    width = std::clamp(calculatedW, 10.0f, 1000.0f);
-    height = std::clamp(calculatedH, 10.0f, 1000.0f);
-    updateMesh();
+    setDimensions(calculatedW, calculatedH);
 }
 
 CollisionInfo RectObstacle::checkCollisionResult(Robot* robot) {
@@ -115,4 +113,10 @@ void RectObstacle::serialize(json& j) const {
     j["type"] = "rect";
     j["width"] = this->width;
     j["height"] = this->height;
+}
+
+void RectObstacle::setDimensions(float w, float h) {
+    width = std::clamp(w, 10.0f, 1000.0f);
+    height = std::clamp(h, 10.0f, 1000.0f);
+    updateMesh();
 }

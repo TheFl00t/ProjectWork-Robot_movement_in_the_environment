@@ -5,12 +5,17 @@
 #include "Robot.h"
 
 class RectObstacle : public Obstacle {
-public:
+private:
     float width;
     float height;
 
+public:
     RectObstacle(glm::vec2 pos, float width, float height);
     ~RectObstacle();
+
+    float getWidth() const { return width; }
+    float getHeight() const { return height; }
+    void setDimensions(float w, float h);
 
     void updateMesh() override;
     void update(float dt) override;

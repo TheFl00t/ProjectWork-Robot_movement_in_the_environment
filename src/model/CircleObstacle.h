@@ -5,9 +5,10 @@
 #include "Robot.h"
 
 class CircleObstacle : public Obstacle {
-public:
+private:
     float radius;
 
+public:
     CircleObstacle(glm::vec2 pos, float radius);
     ~CircleObstacle();
 
@@ -23,4 +24,7 @@ public:
 
     std::string getTypeName() const override { return "Circle"; }
     void serialize(json& j) const override;
+
+    float getRadius() const { return radius; }
+    void setRadius(float newRadius);
 };
