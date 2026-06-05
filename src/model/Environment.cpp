@@ -1,12 +1,10 @@
 #include "Environment.h"
+#include "../view/Renderer.h"
 #include <algorithm>
 
 Environment::Environment(glm::vec2 pos, float width, float height) 
     : Entity(pos), width(width), height(height) 
 {
-    rectMesh = new RectMesh(width, height, false);
-    mesh = rectMesh;
-
     style.mode = DrawMode::Outline;
     style.outlineColor = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
     style.lineWidth = 3.0f;
@@ -16,7 +14,6 @@ Environment::~Environment() {
     for (auto obs : obstacles) {
         delete obs;
     }
-    delete mesh;
 }
 
 void Environment::addObstacle(Obstacle* obs) {
@@ -54,13 +51,13 @@ void Environment::resizeByGizmo(const glm::vec2& mousePos) {
     setDimensions(calculatedW, calculatedH);
 }
 
+void Environment::drawVisitor(Renderer* renderer) {
+    renderer->drawEnvironment(this);
+}
+
 void Environment::setDimensions(float w, float h) {
     width = std::clamp(w, 200.0f, 2048.0f);
     height = std::clamp(h, 200.0f, 2048.0f);
-    
-    if (rectMesh) {
-        rectMesh->updateDimensions(width, height);
-    };
 }
 
 CollisionInfo Environment::checkCollisionResult(Robot* robot) {
@@ -118,7 +115,8 @@ CollisionInfo Environment::checkCollisionResult(Robot* robot) {
 void Environment::removeObstacle(Obstacle* obs) {
     auto it = std::find(obstacles.begin(), obstacles.end(), obs);
     if (it != obstacles.end()) {
-        delete *it; // Викликається деструктор Obstacle, який видалить свій mesh
+        
+        delete *it; 
         obstacles.erase(it);
     }
 }

@@ -7,11 +7,9 @@ class Robot : public Entity {
 private:
     float radius;
     float velocity;
-    CircleMesh* circleMesh = nullptr;
 
 public:
     glm::vec2 direction;
-    
     // Значення для функції Reset
     glm::vec2 startPos;
     float startRadius;
@@ -25,6 +23,7 @@ public:
 
     bool getBounds(glm::vec2& outMin, glm::vec2& outMax) const override;
     void resizeByGizmo(const glm::vec2& mousePos) override;
+    void drawVisitor(class Renderer* renderer) override;
 
     float getRadius() const { return radius; }
     float getVelocity() const { return velocity; }

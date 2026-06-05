@@ -1,28 +1,19 @@
 #include "RectObstacle.h"
+#include "../view/Renderer.h"
 
 RectObstacle::RectObstacle(glm::vec2 pos, float width, float height)
     : Obstacle(pos),
       width(width),
       height(height)
 {
-    initRect(width, height);
-
     style.mode = DrawMode::FillAndOutline;
     style.fillColor = glm::vec4(0.5f, 0.5f, 0.5f, 0.4f);
     style.outlineColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); 
     style.lineWidth = 1.5f;
 }
 
-RectObstacle::~RectObstacle() {
-    delete mesh;
-}
+RectObstacle::~RectObstacle() {}
 
-void RectObstacle::updateMesh() {
-    if (mesh) {
-        delete mesh;
-        initRect(width, height);
-    }
-}
 
 void RectObstacle::update(float dt) {
     // Прямокутна перешкода статична
@@ -48,6 +39,10 @@ void RectObstacle::resizeByGizmo(const glm::vec2& mousePos) {
     float calculatedW = (mousePos.x - entityPos.x) * 2.0f;
     float calculatedH = (mousePos.y - entityPos.y) * 2.0f;
     setDimensions(calculatedW, calculatedH);
+}
+
+void RectObstacle::drawVisitor(Renderer* renderer) {
+    renderer->drawRectObstacle(this);
 }
 
 CollisionInfo RectObstacle::checkCollisionResult(Robot* robot) {
@@ -118,5 +113,4 @@ void RectObstacle::serialize(json& j) const {
 void RectObstacle::setDimensions(float w, float h) {
     width = std::clamp(w, 10.0f, 1000.0f);
     height = std::clamp(h, 10.0f, 1000.0f);
-    updateMesh();
 }

@@ -54,7 +54,8 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
             }
             if (ImGui::MenuItem("Reload from Config File")) {
                 Scene* newScene = ConfigLoader::loadScene(configPath, winWidth, winHeight);
-                if (newScene != nullptr) { 
+                if (newScene != nullptr) {
+                    Renderer::getInstance()->clearCache();
                     delete scene; 
                     scene = newScene; 
                     editor->setSelectedEntity(nullptr);
@@ -172,6 +173,7 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
                 scene->checkCollision(robot->entityPos);
             }
         }
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Shortcut: R");
         if (ImGui::Button("Reset Robot Velocity", ImVec2(-1, 25))) {
             if (robot) {
                 robot->setVelocity(robot->startVelocity);
@@ -202,6 +204,7 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
                 flashTimer = 0.4f; // Вмикаємо червоний спалах на 400мс
                 flashTarget = currentSelected;
             } else {
+                Renderer::getInstance()->freeEntityMesh(currentSelected);
                 env->removeObstacle(static_cast<Obstacle*>(currentSelected));
                 editor->setSelectedEntity(nullptr);
                 currentSelected = nullptr;
@@ -449,6 +452,7 @@ void GuiManager::render(GLFWwindow* window, Scene*& scene, MapEditor* editor, Ap
                         ImGui::Spacing();
                         ImGui::Separator();
                         if (ImGui::Button("Delete Object", ImVec2(-1, 25))) {
+                            Renderer::getInstance()->freeEntityMesh(currentSelected);
                             env->removeObstacle(static_cast<Obstacle*>(currentSelected));
                             editor->setSelectedEntity(nullptr);
                         }

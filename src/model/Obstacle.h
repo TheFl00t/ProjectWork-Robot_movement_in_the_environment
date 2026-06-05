@@ -3,18 +3,15 @@
 #include <string>
 #include "../json.hpp"
 #include "Entity.h"
-#include "../view/CircleMesh.h" 
-#include "../view/RectMesh.h"
 
 using json = nlohmann::json;
-
 class Robot;
 
 struct CollisionInfo {
     bool collided = false;
-    glm::vec2 normal = glm::vec2(0.0f);       // Напрямок від перешкоди до робота
-    glm::vec2 contactPoint = glm::vec2(0.0f); // Точка дотику на поверхні
-    float depth = 0.0f;                       // Наскільки глибоко робот зайшов у перешкоду
+    glm::vec2 normal = glm::vec2(0.0f);       
+    glm::vec2 contactPoint = glm::vec2(0.0f); 
+    float depth = 0.0f;                       
 };
 
 class Obstacle : public Entity {
@@ -23,13 +20,6 @@ public:
     virtual ~Obstacle() {};
 
     virtual CollisionInfo checkCollisionResult(Robot* robot) = 0;
-    virtual void updateMesh() = 0;
-
     virtual std::string getTypeName() const = 0;
     virtual void serialize(json& j) const = 0;
-
-protected:
-    // Допоміжні методи ініціалізації
-    void initCircle(float radius, unsigned vertexCount = 360);
-    void initRect(float width, float height);
 };

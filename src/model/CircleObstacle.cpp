@@ -1,27 +1,17 @@
 #include "CircleObstacle.h"
+#include "../view/Renderer.h"
 
 CircleObstacle::CircleObstacle(glm::vec2 pos, float radius)
     : Obstacle(pos),
       radius(radius)
 {
-    initCircle(radius);
-
     style.mode = DrawMode::FillAndOutline;
     style.fillColor = glm::vec4(0.5f, 0.5f, 0.5f, 0.4f);
     style.outlineColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); 
     style.lineWidth = 1.5f;
 }
 
-CircleObstacle::~CircleObstacle() {
-    delete mesh;
-}
-
-void CircleObstacle::updateMesh() {
-    if (mesh) {
-        delete mesh;
-        initCircle(radius);
-    }
-}
+CircleObstacle::~CircleObstacle() {}
 
 void CircleObstacle::update(float dt) {
     // ~
@@ -41,6 +31,10 @@ bool CircleObstacle::getBounds(glm::vec2& outMin, glm::vec2& outMax) const {
 void CircleObstacle::resizeByGizmo(const glm::vec2& mousePos) {
     float calculatedRadius = mousePos.x - entityPos.x;
     setRadius(calculatedRadius);
+}
+
+void CircleObstacle::drawVisitor(Renderer* renderer) {
+    renderer->drawCircleObstacle(this);
 }
 
 CollisionInfo CircleObstacle::checkCollisionResult(Robot* robot) {
@@ -68,5 +62,4 @@ void CircleObstacle::serialize(json& j) const {
 
 void CircleObstacle::setRadius(float newRadius) {
     radius = std::clamp(newRadius, 5.0f, 1000.0f);
-    updateMesh();
 }

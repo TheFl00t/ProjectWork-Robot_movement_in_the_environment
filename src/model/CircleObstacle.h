@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Obstacle.h"
-#include "../view/CircleMesh.h"
 #include "Robot.h"
 
 class CircleObstacle : public Obstacle {
@@ -12,12 +11,12 @@ public:
     CircleObstacle(glm::vec2 pos, float radius);
     ~CircleObstacle();
 
-    void updateMesh() override;
     void update(float dt) override;
     bool containsPoint(glm::vec2 point) override;
 
     bool getBounds(glm::vec2& outMin, glm::vec2& outMax) const override;
     void resizeByGizmo(const glm::vec2& mousePos) override;
+    void drawVisitor(class Renderer* renderer) override;
 
     // Новый полиморфный метод расчета коллизии
     CollisionInfo checkCollisionResult(Robot* robot) override;

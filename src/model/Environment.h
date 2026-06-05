@@ -7,7 +7,6 @@
 class Environment : public Entity {
 private:
     std::vector<Obstacle*> obstacles;
-    RectMesh* rectMesh = nullptr;
 
 public:
     float width;
@@ -23,6 +22,7 @@ public:
 
     bool getBounds(glm::vec2& outMin, glm::vec2& outMax) const override;
     void resizeByGizmo(const glm::vec2& mousePos) override;
+    void drawVisitor(class Renderer* renderer) override;
 
     void setDimensions(float w, float h);
     
