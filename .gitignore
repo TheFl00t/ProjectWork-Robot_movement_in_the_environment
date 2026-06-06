@@ -24,5 +24,6 @@ imgui.ini
 # Other
 .tmp/
 *.docx
+.hintrc
 
 !glfw3.dll

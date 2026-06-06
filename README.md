@@ -66,7 +66,7 @@ cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Debug ..
 cmake --build .
 ```
 ### 4. Запуск
-Після успішної збірки у папці `build` з'явиться файл `RobotSimulation.exe`. Система збірки автоматично копіює необхідні ресурси (`config.cfg` та папку `src/shaders`) поруч із виконуваним файлом.
+Після успішної збірки у папці `build` з'явиться файл `RobotSimulation.exe`. Система збірки автоматично копіює необхідні ресурси (`config.json` та папку `src/shaders`) поруч із виконуваним файлом.
 ```bash
 ./RobotSimulation.exe
 ```

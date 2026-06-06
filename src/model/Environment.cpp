@@ -1,10 +1,10 @@
 #include "Environment.h"
+#include "../view/Renderer.h"
+#include <algorithm>
 
 Environment::Environment(glm::vec2 pos, float width, float height) 
     : Entity(pos), width(width), height(height) 
 {
-    setMesh(new RectMesh(width, height));
-
     style.mode = DrawMode::Outline;
     style.outlineColor = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
     style.lineWidth = 3.0f;
@@ -14,7 +14,6 @@ Environment::~Environment() {
     for (auto obs : obstacles) {
         delete obs;
     }
-    delete mesh;
 }
 
 void Environment::addObstacle(Obstacle* obs) {
@@ -23,6 +22,42 @@ void Environment::addObstacle(Obstacle* obs) {
 
 void Environment::update(float dt) {
     // Середовище статичне
+}
+
+bool Environment::containsPoint(glm::vec2 point) {
+    float left   = entityPos.x;
+    float right  = entityPos.x + width;
+    float top    = entityPos.y;
+    float bottom = entityPos.y + height;
+    float thickness = 8.0f;
+
+    bool nearLeft   = (point.x >= left - thickness && point.x <= left + thickness && point.y >= top && point.y <= bottom);
+    bool nearRight  = (point.x >= right - thickness && point.x <= right + thickness && point.y >= top && point.y <= bottom);
+    bool nearTop    = (point.y >= top - thickness && point.y <= top + thickness && point.x >= left && point.x <= right);
+    bool nearBottom = (point.y >= bottom - thickness && point.y <= bottom + thickness && point.x >= left && point.x <= right);
+
+    return (nearLeft || nearRight || nearTop || nearBottom);
+}
+
+bool Environment::getBounds(glm::vec2& outMin, glm::vec2& outMax) const {
+    outMin = entityPos;
+    outMax = entityPos + glm::vec2(width, height);
+    return true;
+}
+
+void Environment::resizeByGizmo(const glm::vec2& mousePos) {
+    float calculatedW = mousePos.x - entityPos.x;
+    float calculatedH = mousePos.y - entityPos.y;
+    setDimensions(calculatedW, calculatedH);
+}
+
+void Environment::drawVisitor(Renderer* renderer) {
+    renderer->drawEnvironment(this);
+}
+
+void Environment::setDimensions(float w, float h) {
+    width = std::clamp(w, 200.0f, 2048.0f);
+    height = std::clamp(h, 200.0f, 2048.0f);
 }
 
 CollisionInfo Environment::checkCollisionResult(Robot* robot) {
@@ -34,30 +69,30 @@ CollisionInfo Environment::checkCollisionResult(Robot* robot) {
     float bottom = entityPos.y + height;
 
     // 1. Перевірка зовнішніх меж арени (виштовхування всередину)
-    if (robot->entityPos.x - robot->radius < left) {
+    if (robot->entityPos.x - robot->getRadius() < left) {
         info.collided = true;
-        info.depth = left - (robot->entityPos.x - robot->radius);
+        info.depth = left - (robot->entityPos.x - robot->getRadius());
         info.normal = glm::vec2(1.0f, 0.0f);
         info.contactPoint = glm::vec2(left, robot->entityPos.y);
         return info;
     }
-    if (robot->entityPos.x + robot->radius > right) {
+    if (robot->entityPos.x + robot->getRadius() > right) {
         info.collided = true;
-        info.depth = (robot->entityPos.x + robot->radius) - right;
+        info.depth = (robot->entityPos.x + robot->getRadius()) - right;
         info.normal = glm::vec2(-1.0f, 0.0f);
         info.contactPoint = glm::vec2(right, robot->entityPos.y);
         return info;
     }
-    if (robot->entityPos.y - robot->radius < top) {
+    if (robot->entityPos.y - robot->getRadius() < top) {
         info.collided = true;
-        info.depth = top - (robot->entityPos.y - robot->radius);
+        info.depth = top - (robot->entityPos.y - robot->getRadius());
         info.normal = glm::vec2(0.0f, 1.0f);
         info.contactPoint = glm::vec2(robot->entityPos.x, top);
         return info;
     }
-    if (robot->entityPos.y + robot->radius > bottom) {
+    if (robot->entityPos.y + robot->getRadius() > bottom) {
         info.collided = true;
-        info.depth = (robot->entityPos.y + robot->radius) - bottom;
+        info.depth = (robot->entityPos.y + robot->getRadius()) - bottom;
         info.normal = glm::vec2(0.0f, -1.0f);
         info.contactPoint = glm::vec2(robot->entityPos.x, bottom);
         return info;
@@ -75,4 +110,13 @@ CollisionInfo Environment::checkCollisionResult(Robot* robot) {
     }
 
     return info;
+}
+
+void Environment::removeObstacle(Obstacle* obs) {
+    auto it = std::find(obstacles.begin(), obstacles.end(), obs);
+    if (it != obstacles.end()) {
+        
+        delete *it; 
+        obstacles.erase(it);
+    }
 }

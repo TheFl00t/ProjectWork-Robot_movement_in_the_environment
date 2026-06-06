@@ -9,5 +9,7 @@ public:
     ~Point();
 
     void update(float dt) override;
+    void drawVisitor(class Renderer* renderer) override;
+    
     void setAlpha(float alpha);
 };

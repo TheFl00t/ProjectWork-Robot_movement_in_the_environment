@@ -4,11 +4,12 @@
 #include "../view/CircleMesh.h"
 
 class Robot : public Entity {
-public:
+private:
     float radius;
     float velocity;
+
+public:
     glm::vec2 direction;
-    
     // Значення для функції Reset
     glm::vec2 startPos;
     float startRadius;
@@ -18,4 +19,15 @@ public:
     ~Robot();
 
     void update(float dt) override;
+    bool containsPoint(glm::vec2 point) override;
+
+    bool getBounds(glm::vec2& outMin, glm::vec2& outMax) const override;
+    void resizeByGizmo(const glm::vec2& mousePos) override;
+    void drawVisitor(class Renderer* renderer) override;
+
+    float getRadius() const { return radius; }
+    float getVelocity() const { return velocity; }
+
+    void setRadius(float newRadius);
+    void setVelocity(float newVelocity);
 };

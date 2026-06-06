@@ -1,33 +1,33 @@
 #pragma once
 
-// Підключення моделей
-#include "../model/Robot.h"
-#include "../model/CircleObstacle.h"
-#include "../model/RectObstacle.h"
-#include "../model/Point.h"
-
-// Підключення відображення
-#include "../view/Renderer.h"
-
-// Підключення контролерів
-#include "InputManager.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include "AppState.h"
 #include "Scene.h"
+#include "MapEditor.h"
+#include "../view/GuiManager.h"
 
+/// @brief Головний клас додатку, що керує життєвим циклом програми (ініціалізація, цикл оновлення, рендеринг)
 class App {
 private:
-    GLFWwindow* window;
-    Robot* robot;
-    Renderer* renderer;
-    
-    bool resetGuiPos = false;
+    GLFWwindow* window = nullptr;           // Вказівник на вікно GLFW
+    Scene* scene = nullptr;                 // Сцена
+    MapEditor* mapEditor = nullptr;         // Редактор карти
+    GuiManager* guiManager = nullptr;       // Менеджер графічного інтерфейсу (ImGui)
+    AppState state = AppState::Simulation;  // Поточний стан (Симуляція або Редактор)
 
-    // Обробка натискань клавіш
-    void processInput();
-    
-    // Розрахунок часу між кадрами
+    int winWidth = 1024;                    // Ширина вікна
+    int winHeight = 768;                    // Висота вікна
+
+    bool imguiInitialized = false;
+
     float computeDeltaTime();
+    void processInput();
+    glm::vec2 getScreenToWorldMousePos();
 
 public:
-    // Головний метод запуску
+    App() = default;
+    ~App();
     void run();
 };

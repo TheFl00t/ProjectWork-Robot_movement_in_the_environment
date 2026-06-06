@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AppState.h"
 #include "../view/Renderer.h"
 #include "../model/Robot.h"
 #include "../model/Environment.h"
@@ -13,7 +14,7 @@ private:
     Robot* robot;
     Environment* environment;
     Point* collisionPoint; // Точка для дебагу колізії
-    Line* velocityLine;    // Ввектор швидкості для дебагу
+    Line* velocityVector;    // Ввектор швидкості для дебагу
 
 public:
     bool showCollisionPoint = true; 
@@ -22,8 +23,11 @@ public:
     Scene(Robot* r, Environment* env);
     ~Scene();
 
+    Scene(const Scene&) = delete;
+    Scene& operator=(const Scene&) = delete;
+
     void update(float dt);           
-    void render(Renderer* renderer); 
+    void render(Renderer* renderer, AppState state);
 
     Robot* getRobot() { return robot; }
     Environment* getEnvironmentPointer() { return environment; }

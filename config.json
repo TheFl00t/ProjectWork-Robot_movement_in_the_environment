@@ -1,0 +1,89 @@
+{
+  "arena": {
+    "height": 700.0,
+    "position": [
+      20.0,
+      20.0
+    ],
+    "width": 980.0
+  },
+  "obstacles": [
+    {
+      "position": [
+        200.0,
+        250.0
+      ],
+      "radius": 50.0,
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "type": "circle"
+    },
+    {
+      "height": 168.89999389648438,
+      "position": [
+        778.0,
+        337.0
+      ],
+      "style": {
+        "draw_mode": "Fill",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 219.1999969482422
+    }
+  ],
+  "robot": {
+    "position": [
+      459.06707763671875,
+      353.1272888183594
+    ],
+    "radius": 47.93292236328125,
+    "style": {
+      "draw_mode": "FillAndOutline",
+      "fill_color": [
+        0.0,
+        1.0,
+        0.0,
+        0.30000001192092896
+      ],
+      "line_width": 2.5,
+      "outline_color": [
+        0.0,
+        1.0,
+        0.0,
+        1.0
+      ]
+    },
+    "velocity": 250.0
+  },
+  "window": {
+    "height": 746,
+    "width": 1024
+  }
+}
