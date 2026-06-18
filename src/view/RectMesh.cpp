@@ -56,6 +56,10 @@ void RectMesh::draw(GLenum topology) {
 }
 
 void RectMesh::updateDimensions(float newWidth, float newHeight) {
+    if (std::abs(width - newWidth) < 1e-5f && std::abs(height - newHeight) < 1e-5f) {
+        return;
+    }
+
     width = newWidth;
     height = newHeight;
 
@@ -75,5 +79,5 @@ void RectMesh::updateDimensions(float newWidth, float newHeight) {
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec2), vertices.data(), GL_DYNAMIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(glm::vec2), vertices.data());
 }

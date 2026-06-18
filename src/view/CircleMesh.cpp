@@ -28,15 +28,17 @@ void CircleMesh::init() {
 }
 
 void CircleMesh::updateVertices() {
-    std::vector<glm::vec2> vertices(vertex_count);
+    std::vector<glm::vec2> verts(vertex_count + 2);
+    verts[0] = glm::vec2(0.0f, 0.0f); // центр — точка відліку TRIANGLE_FAN
     for (unsigned int i = 0; i < vertex_count; i++) {
         float angle = DOUBLE_M_PI * i / vertex_count;
-        vertices[i] = glm::vec2(cos(angle) * radius, sin(angle) * radius);
+        verts[i + 1] = glm::vec2(cos(angle) * radius, sin(angle) * radius);
     }
+    verts[vertex_count + 1] = verts[1]; // замикаємо коло
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof(glm::vec2), vertices.data(), GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (vertex_count + 2) * sizeof(glm::vec2), verts.data(), GL_DYNAMIC_DRAW);
 }
 
 void CircleMesh::setRadius(float r) {
@@ -48,5 +50,8 @@ void CircleMesh::setRadius(float r) {
 
 void CircleMesh::draw(GLenum topology) {
     glBindVertexArray(VAO);
-    glDrawArrays(topology, 0, vertex_count);
+     if (topology == GL_LINE_LOOP)
+        glDrawArrays(GL_LINE_LOOP, 1, vertex_count);
+    else
+        glDrawArrays(topology, 0, vertex_count + 2);
 }

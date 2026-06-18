@@ -2,44 +2,20 @@
   "arena": {
     "height": 700.0,
     "position": [
-      20.0,
+      22.0,
       20.0
     ],
     "width": 980.0
   },
   "obstacles": [
     {
+      "height": 44.0,
       "position": [
-        200.0,
-        250.0
+        391.0,
+        209.0
       ],
-      "radius": 50.0,
       "style": {
         "draw_mode": "FillAndOutline",
-        "fill_color": [
-          0.5,
-          0.5,
-          0.5,
-          0.4000000059604645
-        ],
-        "line_width": 1.5,
-        "outline_color": [
-          1.0,
-          0.0,
-          0.0,
-          1.0
-        ]
-      },
-      "type": "circle"
-    },
-    {
-      "height": 168.89999389648438,
-      "position": [
-        778.0,
-        337.0
-      ],
-      "style": {
-        "draw_mode": "Fill",
         "fill_color": [
           0.5,
           0.5,
@@ -55,15 +31,389 @@
         ]
       },
       "type": "rect",
-      "width": 219.1999969482422
+      "width": 274.0
+    },
+    {
+      "height": 302.0,
+      "position": [
+        168.0,
+        274.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 164.0
+    },
+    {
+      "height": 192.0,
+      "position": [
+        563.0,
+        397.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 84.0
+    },
+    {
+      "height": 156.0,
+      "position": [
+        338.0,
+        357.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 50.0
+    },
+    {
+      "height": 32.0,
+      "position": [
+        312.0,
+        501.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 248.0
+    },
+    {
+      "height": 26.0,
+      "position": [
+        657.0,
+        507.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 274.0
+    },
+    {
+      "height": 142.0,
+      "position": [
+        626.0,
+        591.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 36.0
+    },
+    {
+      "height": 134.0,
+      "position": [
+        847.0,
+        653.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 44.0
+    },
+    {
+      "position": [
+        735.0,
+        616.0
+      ],
+      "radius": 24.0,
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "circle"
+    },
+    {
+      "height": 34.0,
+      "position": [
+        358.0,
+        645.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 500.0
+    },
+    {
+      "height": 168.0,
+      "position": [
+        422.0,
+        104.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 38.0
+    },
+    {
+      "height": 178.0,
+      "position": [
+        643.0,
+        109.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 38.0
+    },
+    {
+      "height": 70.0,
+      "position": [
+        795.0,
+        408.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 252.0
+    },
+    {
+      "height": 220.0,
+      "position": [
+        765.0,
+        189.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 58.0
+    },
+    {
+      "height": 162.0,
+      "position": [
+        910.0,
+        162.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 50.0
+    },
+    {
+      "height": 52.0,
+      "position": [
+        840.0,
+        216.0
+      ],
+      "style": {
+        "draw_mode": "FillAndOutline",
+        "fill_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.4000000059604645
+        ],
+        "line_width": 1.5,
+        "outline_color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "type": "rect",
+      "width": 88.0
     }
   ],
   "robot": {
     "position": [
-      459.06707763671875,
-      353.1272888183594
+      443.3816833496094,
+      362.1700744628906
     ],
-    "radius": 47.93292236328125,
+    "radius": 15.0,
     "style": {
       "draw_mode": "FillAndOutline",
       "fill_color": [
@@ -80,7 +430,7 @@
         1.0
       ]
     },
-    "velocity": 250.0
+    "velocity": 300.0
   },
   "window": {
     "height": 746,

@@ -40,6 +40,10 @@ add_executable(${PROJECT_NAME}
     src/model/RectObstacle.cpp
     src/model/Point.cpp
     src/model/Line.cpp
+    src/model/Lidar.cpp
+    src/model/PathEntity.cpp
+    src/model/NavGrid.cpp
+    src/model/TargetPoint.cpp
 
     # View
     src/view/Shader.cpp
@@ -51,6 +55,8 @@ add_executable(${PROJECT_NAME}
     src/view/RectMesh.cpp
     src/view/PointMesh.cpp
     src/view/LineMesh.cpp
+    src/view/LidarMesh.cpp
+    src/view/PathMesh.cpp
 
     # Controller
     src/controller/App.cpp
@@ -59,6 +65,8 @@ add_executable(${PROJECT_NAME}
     src/controller/ConfigLoader.cpp
     src/controller/MapEditor.cpp
     src/controller/AppState.h
+    src/controller/LidarProcessor.cpp
+    src/controller/Pathfinder.cpp
 )
 
 # Якщо ми збираємо Release (фінальну версію), то приховуємо консоль
@@ -76,7 +84,7 @@ target_include_directories(${PROJECT_NAME}
 
 # Лінковка бібліотек
 target_link_libraries(${PROJECT_NAME} 
-    PRIVATE ${GLFW3_LIBRARY} OpenGL::GL
+    PRIVATE ${GLFW3_LIBRARY} OpenGL::GL dwmapi
 )
 
 # 1. Копіюємо файл config.json поруч із .exe

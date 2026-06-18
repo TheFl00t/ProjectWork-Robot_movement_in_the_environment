@@ -1,4 +1,5 @@
 #include "CircleObstacle.h"
+#include "../constants.h"
 #include "../view/Renderer.h"
 
 CircleObstacle::CircleObstacle(glm::vec2 pos, float radius)
@@ -37,6 +38,23 @@ void CircleObstacle::drawVisitor(Renderer* renderer) {
     renderer->drawCircleObstacle(this);
 }
 
+float CircleObstacle::intersectRay(const glm::vec2& rayStart, const glm::vec2& rayDir) const {
+    glm::vec2 v = rayStart - entityPos;
+    float b = 2.0f * glm::dot(rayDir, v);
+    float c = glm::dot(v, v) - radius * radius;
+    float discriminant = b * b - 4.0f * c;
+
+    if (discriminant < 0.0f) return -1.0f;
+
+    float t1 = (-b - std::sqrt(discriminant)) / 2.0f;
+    if (t1 > 0.0f) return t1;
+
+    float t2 = (-b + std::sqrt(discriminant)) / 2.0f;
+    if (t2 > 0.0f) return t2;
+
+    return -1.0f;
+}
+
 CollisionInfo CircleObstacle::checkCollisionResult(Robot* robot) {
     CollisionInfo info;
 
@@ -61,5 +79,5 @@ void CircleObstacle::serialize(json& j) const {
 }
 
 void CircleObstacle::setRadius(float newRadius) {
-    radius = std::clamp(newRadius, 5.0f, 1000.0f);
+    radius = std::clamp(newRadius, CIRCLE_RADIUS_MIN, CIRCLE_RADIUS_MAX);
 }

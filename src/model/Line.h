@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Entity.h"
-#include "../view/LineMesh.h"
 
 class Line : public Entity {
 public:

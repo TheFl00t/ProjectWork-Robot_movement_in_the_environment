@@ -1,0 +1,43 @@
+{
+  "lidar": {
+    "color": [
+      1.0,
+      0.0,
+      0.0,
+      0.30000001192092896
+    ],
+    "fov": 6.283180236816406,
+    "max_distance": 300.0,
+    "ray_count": 180,
+    "visible": false
+  },
+  "path": {
+    "color": [
+      1.0,
+      0.6000000238418579,
+      0.0,
+      1.0
+    ],
+    "line_width": 2.5,
+    "render_type": 0
+  },
+  "simulation": {
+    "autonomous_mode": false,
+    "cell_size": 20.0,
+    "selected_algorithm": 0,
+    "selected_costmap_source": 0,
+    "show_blocked_cells": false,
+    "show_collision_point": true,
+    "show_grid": false,
+    "show_velocity_vector": false
+  },
+  "target_view": {
+    "color": [
+      1.0,
+      0.6000000238418579,
+      0.0,
+      1.0
+    ],
+    "line_width": 2.0
+  }
+}

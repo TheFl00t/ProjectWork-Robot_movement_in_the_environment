@@ -29,7 +29,7 @@ void MapEditor::update(GLFWwindow* window, Scene* scene, glm::vec2 worldMousePos
                 const auto& obstacles = env->getObstacles();
                 for (int i = static_cast<int>(obstacles.size()) - 1; i >= 0; --i) {
                     if (obstacles[i]->containsPoint(worldMousePos)) {
-                        clickedObstacle = obstacles[i];
+                        clickedObstacle = obstacles[i].get();
                         break;
                     }
                 }
@@ -66,7 +66,8 @@ void MapEditor::update(GLFWwindow* window, Scene* scene, glm::vec2 worldMousePos
                 newObs->style.fillColor = glm::vec4(newFillColor[0], newFillColor[1], newFillColor[2], newFillColor[3]);
                 newObs->style.outlineColor = glm::vec4(newOutlineColor[0], newOutlineColor[1], newOutlineColor[2], newOutlineColor[3]);
 
-                env->addObstacle(newObs);
+                env->addObstacle(std::unique_ptr<Obstacle>(newObs));
+                scene->requestGridClear = true;
                 selectedEntity = newObs; // Фокусуємось на створеному об'єкті для редагування
             }
         }
@@ -75,6 +76,7 @@ void MapEditor::update(GLFWwindow* window, Scene* scene, glm::vec2 worldMousePos
     else if (leftMouseState == GLFW_PRESS && wasLeftPressed) {
         if (isDragging && selectedEntity && effectiveTool == EditorTool::Select) {
             selectedEntity->entityPos = worldMousePos + dragOffset;
+            scene->requestGridClear = true;
         }
     }
     // 3. ВІДПУСКАННЯ МИШІ

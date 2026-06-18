@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Entity.h"
-#include "../view/PointMesh.h"
 
 class Point : public Entity {
 public:

@@ -18,6 +18,8 @@ public:
     void resizeByGizmo(const glm::vec2& mousePos) override;
     void drawVisitor(class Renderer* renderer) override;
 
+    float intersectRay(const glm::vec2& rayStart, const glm::vec2& rayDir) const override;
+
     // Новый полиморфный метод расчета коллизии
     CollisionInfo checkCollisionResult(Robot* robot) override;
 

@@ -10,7 +10,7 @@ PointMesh::~PointMesh() {
 }
 
 void PointMesh::init() {
-    // Точка знаходиться в локальному центрі. Renderer сам змістить її куди потрібно
+    // Локальний центр (0,0), Renderer перемістить через uModel
     glm::vec2 vertex(0.0f, 0.0f);
 
     glGenVertexArrays(1, &VAO);
@@ -20,7 +20,6 @@ void PointMesh::init() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2), &vertex, GL_STATIC_DRAW);
 
-    // Передаємо 2 флоати (координати X та Y) в location = 0 для універсального shader.vert
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
     glEnableVertexAttribArray(0);
 }

@@ -1,4 +1,5 @@
 #include "RectObstacle.h"
+#include "../constants.h"
 #include "../view/Renderer.h"
 
 RectObstacle::RectObstacle(glm::vec2 pos, float width, float height)
@@ -43,6 +44,35 @@ void RectObstacle::resizeByGizmo(const glm::vec2& mousePos) {
 
 void RectObstacle::drawVisitor(Renderer* renderer) {
     renderer->drawRectObstacle(this);
+}
+
+float RectObstacle::intersectRay(const glm::vec2& rayStart, const glm::vec2& rayDir) const {
+    float hw = width * 0.5f;
+    float hh = height * 0.5f;
+
+    glm::vec2 minBound = entityPos - glm::vec2(hw, hh);
+    glm::vec2 maxBound = entityPos + glm::vec2(hw, hh);
+
+    float invX = (std::abs(rayDir.x) > 1e-7f) ? 1.0f / rayDir.x : (rayDir.x >= 0.0f ? 1e7f : -1e7f);
+    float invY = (std::abs(rayDir.y) > 1e-7f) ? 1.0f / rayDir.y : (rayDir.y >= 0.0f ? 1e7f : -1e7f);
+
+    float txmin = (minBound.x - rayStart.x) * invX;
+    float txmax = (maxBound.x - rayStart.x) * invX;
+    if (txmin > txmax) std::swap(txmin, txmax);
+
+    float tymin = (minBound.y - rayStart.y) * invY;
+    float tymax = (maxBound.y - rayStart.y) * invY;
+    if (tymin > tymax) std::swap(tymin, tymax);
+
+    if ((txmin > tymax) || (tymin > txmax)) return -1.0f;
+
+    float tmin = std::max(txmin, tymin);
+    float tmax = std::min(txmax, tymax);
+
+    if (tmax < 0.0f) return -1.0f;
+    if (tmin < 0.0f) return tmax;
+
+    return tmin;
 }
 
 CollisionInfo RectObstacle::checkCollisionResult(Robot* robot) {
@@ -111,6 +141,6 @@ void RectObstacle::serialize(json& j) const {
 }
 
 void RectObstacle::setDimensions(float w, float h) {
-    width = std::clamp(w, 10.0f, 1000.0f);
-    height = std::clamp(h, 10.0f, 1000.0f);
+    width  = std::clamp(w, RECT_SIZE_MIN, RECT_SIZE_MAX);
+    height = std::clamp(h, RECT_SIZE_MIN, RECT_SIZE_MAX);
 }

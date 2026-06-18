@@ -21,4 +21,7 @@ public:
     static Scene* loadScene(const std::string& fileName, int winWidth, int winHeight);
     // Зберігає сцену у сейв/конфіг файл
     static void saveScene(const std::string& fileName, Scene* scene, int winWidth, int winHeight);
+
+    static void loadAppSettings(const std::string& fileName, Scene* scene);
+    static void saveAppSettings(const std::string& fileName, Scene* scene);
 };

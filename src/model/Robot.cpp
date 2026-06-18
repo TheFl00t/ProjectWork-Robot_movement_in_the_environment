@@ -1,9 +1,11 @@
 #include "Robot.h"
+#include "../constants.h"
 #include "../view/Renderer.h"
 
 Robot::Robot(glm::vec2 pos, float radius, float velocity)
     : Entity(pos), radius(radius), velocity(velocity), direction(glm::vec2(0.f)),
-    startPos(pos), startRadius(radius), startVelocity(velocity)
+    startPos(pos), startRadius(radius), startVelocity(velocity),
+    lidar()
 {
     style.mode = DrawMode::FillAndOutline;
     style.fillColor = glm::vec4(0.0f, 1.0f, 0.0f, 0.3f);
@@ -38,9 +40,9 @@ void Robot::drawVisitor(Renderer* renderer) {
 }
 
 void Robot::setRadius(float newRadius) {
-    radius = std::clamp(newRadius, 5.0f, 1000.0f);
+    radius = std::clamp(newRadius, ROBOT_RADIUS_MIN, ROBOT_RADIUS_MAX);
 }
 
 void Robot::setVelocity(float newVelocity) {
-    velocity = std::clamp(newVelocity, 0.0f, 10000.0f);
+    velocity = std::clamp(newVelocity, ROBOT_VELOCITY_MIN, ROBOT_VELOCITY_MAX);
 }

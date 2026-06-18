@@ -16,6 +16,7 @@ private:
     MapEditor* mapEditor = nullptr;         // Редактор карти
     GuiManager* guiManager = nullptr;       // Менеджер графічного інтерфейсу (ImGui)
     AppState state = AppState::Simulation;  // Поточний стан (Симуляція або Редактор)
+    AppState lastState = AppState::Simulation;
 
     int winWidth = 1024;                    // Ширина вікна
     int winHeight = 768;                    // Висота вікна

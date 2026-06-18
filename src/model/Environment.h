@@ -2,11 +2,10 @@
 
 #include "Obstacle.h"
 #include "Robot.h"
-#include "../view/RectMesh.h"
 
 class Environment : public Entity {
 private:
-    std::vector<Obstacle*> obstacles;
+    std::vector<std::unique_ptr<Obstacle>> obstacles;
 
 public:
     float width;
@@ -15,8 +14,9 @@ public:
     Environment(glm::vec2 pos, float width, float height);
     ~Environment();
 
-    const std::vector<Obstacle*>& getObstacles() const { return obstacles; };
-    void addObstacle(Obstacle* obs);
+    const std::vector<std::unique_ptr<Obstacle>>& getObstacles() const { return obstacles; };
+    void addObstacle(std::unique_ptr<Obstacle> obs);
+    
     void update(float dt) override;
     bool containsPoint(glm::vec2 point) override;
 
@@ -25,6 +25,8 @@ public:
     void drawVisitor(class Renderer* renderer) override;
 
     void setDimensions(float w, float h);
+
+    float intersectRay(const glm::vec2& rayStart, const glm::vec2& rayDir) const;
     
     // Обновленный метод детекции коллизий
     CollisionInfo checkCollisionResult(Robot* robot);

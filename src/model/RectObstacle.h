@@ -23,6 +23,8 @@ public:
     bool getBounds(glm::vec2& outMin, glm::vec2& outMax) const override;
     void resizeByGizmo(const glm::vec2& mousePos) override;
 
+    float intersectRay(const glm::vec2& rayStart, const glm::vec2& rayDir) const override;
+
     // Новый полиморфный метод расчета коллизии
     CollisionInfo checkCollisionResult(Robot* robot) override;
 
