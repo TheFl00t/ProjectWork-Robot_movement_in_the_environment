@@ -26,6 +26,7 @@ add_executable(${PROJECT_NAME}
     src/config.h
     src/main.cpp
     src/glad.c
+    src/json.hpp
 
     # ImGui
     ${IMGUI_FILES}
@@ -39,22 +40,33 @@ add_executable(${PROJECT_NAME}
     src/model/RectObstacle.cpp
     src/model/Point.cpp
     src/model/Line.cpp
+    src/model/Lidar.cpp
+    src/model/PathEntity.cpp
+    src/model/NavGrid.cpp
+    src/model/TargetPoint.cpp
 
     # View
     src/view/Shader.cpp
     src/view/Renderer.cpp
     src/view/ShaderManager.cpp
+    src/view/GuiManager.cpp
     src/view/Mesh.h
     src/view/CircleMesh.cpp
     src/view/RectMesh.cpp
     src/view/PointMesh.cpp
     src/view/LineMesh.cpp
+    src/view/LidarMesh.cpp
+    src/view/PathMesh.cpp
 
     # Controller
     src/controller/App.cpp
     src/controller/InputManager.cpp
     src/controller/Scene.cpp
     src/controller/ConfigLoader.cpp
+    src/controller/MapEditor.cpp
+    src/controller/AppState.h
+    src/controller/LidarProcessor.cpp
+    src/controller/Pathfinder.cpp
 )
 
 # Якщо ми збираємо Release (фінальну версію), то приховуємо консоль
@@ -72,14 +84,14 @@ target_include_directories(${PROJECT_NAME}
 
 # Лінковка бібліотек
 target_link_libraries(${PROJECT_NAME} 
-    PRIVATE ${GLFW3_LIBRARY} OpenGL::GL
+    PRIVATE ${GLFW3_LIBRARY} OpenGL::GL dwmapi
 )
 
-# 1. Копіюємо файл config.cfg поруч із .exe
+# 1. Копіюємо файл config.json поруч із .exe
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_SOURCE_DIR}/config.cfg"
-    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/config.cfg"
+    "${CMAKE_SOURCE_DIR}/config.json"
+    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/config.json"
 )
 
 # 2. Копіюємо всю папку src/shaders у папку збірки (зберігаючи структуру src/shaders)

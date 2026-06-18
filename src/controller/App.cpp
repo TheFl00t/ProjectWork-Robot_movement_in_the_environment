@@ -1,283 +1,242 @@
 #include "App.h"
 #include "ConfigLoader.h"
-
-#ifndef NOMINMAX
-    #define NOMINMAX
-#endif
-#include <windows.h>
-#include <shellapi.h>
-
+#include "InputManager.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-void App::run() {
-    // Ініціалізація бібліотеки GLFW
-    if (!glfwInit()) {
-        std::cerr << "[App] Failed to initialize GLFW" << std::endl;
-        return;
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#include <dwmapi.h>
+
+App::~App() {
+    if (scene) {
+        ConfigLoader::saveAppSettings("settings.json", scene);
     }
 
-    // --- НАЛАШТУВАННЯ ВІКНА ---
+    delete scene;
+    delete mapEditor;
+    delete guiManager;
+    
+    if (imguiInitialized) {
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+    }
 
-    // Зчитуємо розміри з конфігу
-    int winWidth, winHeight;
-    ConfigLoader::loadWindowSize("config.cfg", winWidth, winHeight);
+    if (window) {
+        glfwDestroyWindow(window);
+    }
+    
+    glfwTerminate();
+}
 
-    // Отримуємо розміри монітора
+void App::run() {
+    if (!glfwInit()) return;
+    std::string configPath = ConfigLoader::getConfigPath("config.json", false);
+    ConfigLoader::loadWindowSize(configPath, winWidth, winHeight);
+
     GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
-
-    // Обмежуємо розміри (не менше 800x600 і не більше екрану)
     winWidth = std::clamp(winWidth, 800, mode->width);
     winHeight = std::clamp(winHeight, 600, mode->height);
 
-    std::cout << "[App] Window size set to: " << winWidth << "x" << winHeight << std::endl;
-
-    // Забороняємо зміну розміру вікна
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    
-    // Створюємо вікно
-    window = glfwCreateWindow(winWidth, winHeight, "Robot Simulation", NULL, NULL);
-    if (!window) { 
-        glfwTerminate(); 
-        return; 
+    if (winWidth == mode->width && winHeight == mode->height) {
+        glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
     }
+
+    window = glfwCreateWindow(winWidth, winHeight, "Robot Simulation", NULL, NULL);
+    if (!window) { glfwTerminate(); return; }
+
+    #define DWMWA_CAPTION_COLOR 35
+    #define DWMWA_TEXT_COLOR 36
+    HWND hwnd = glfwGetWin32Window(window);
+    COLORREF titleBarColor = RGB(24, 24, 24);
+    COLORREF textColor = RGB(255, 255, 255);
+    DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, &titleBarColor, sizeof(titleBarColor));
+    DwmSetWindowAttribute(hwnd, DWMWA_TEXT_COLOR, &textColor, sizeof(textColor));
     
     glfwMakeContextCurrent(window);
-    
-    // Ініціалізація GLAD
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "[App] Failed to initialize GLAD" << std::endl;
-        return;
-    }
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) return;
     
     glViewport(0, 0, winWidth, winHeight);
 
-    // ===================================
-    //            ImGui Setup
-    // ===================================
+    // Ініціалізація ImGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.Colors[ImGuiCol_WindowBg]  = ImVec4(0.094f, 0.094f, 0.094f, 0.7f);
+    style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.094f, 0.094f, 0.094f, 1.0f);
+    
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    // ===================================
-    //         Resources & Scene
-    // ===================================
-    ShaderManager* shaderManager = ShaderManager::getInstance();
-    // Завантажуємо шейдери
-    shaderManager->loadShader("obstacle", "shader.vert", "shader.frag");
-    shaderManager->loadShader("robot", "robotShader.vert", "robotShader.frag");
-    shaderManager->loadShader("walls", "wallsShader.vert", "wallsShader.frag");
-    shaderManager->loadShader("point", "pointShader.vert", "pointShader.frag");
+    imguiInitialized = true;
 
+    // Завантаження ресурсів
+    ShaderManager::getInstance()->loadShader("default", "shader.vert", "defaultShader.frag");
     Renderer* renderer = Renderer::getInstance();
-
-    // Налаштовуємо матрицю проекції
+    
     glm::mat4 proj = glm::ortho(0.0f, (float)winWidth, (float)winHeight, 0.0f, -1.0f, 1.0f);
     renderer->setProjection(proj);
     renderer->applyProjectionToAllShaders();
 
-    // Завантажуємо сцену
-    Scene* scene = ConfigLoader::loadScene("config.cfg", winWidth, winHeight);
-    this->robot = scene->getRobot();
+    // Створення підсистем
+    scene = ConfigLoader::loadScene(configPath, winWidth, winHeight);
+    mapEditor = new MapEditor();
+    guiManager = new GuiManager();
 
-    // Налаштування OpenGL
-    glEnable(GL_PROGRAM_POINT_SIZE);
+    ConfigLoader::loadAppSettings("settings.json", scene);
+
+    glPointSize(8.0f);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // ===================================
-    //             Main Loop
-    // ===================================
     while (!glfwWindowShouldClose(window)) {
         float dt = computeDeltaTime();
 
-        // Очищення буферу кольору
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.157f, 0.157f, 0.157f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // Обробка введення
+        if (state == AppState::Simulation && lastState == AppState::Editor) {
+            if (scene && scene->autonomousMode && scene->targetPoint->active) {
+                scene->requestPathUpdate();
+            }
+        }
+        lastState = state;
         processInput();
-    
-        // --- ImGui: Початок кадру ---
-        {
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
-        }
-
-        // --- Оновлення та Рендер ---
-        {
-            scene->update(dt);
-            scene->render(renderer);
-        }
-
-        // --- Побудова інтерфейсу ImGui ---
-        {
-            // Розрахунок позиції вікна налаштувань
-            float windowW = 300.0f;
-            float padding = 20.0f;
-            float posX = ImGui::GetIO().DisplaySize.x - windowW - padding;
-            float posY = padding;
-
-            ImGui::SetNextWindowPos(ImVec2(posX, posY), ImGuiCond_Appearing);
-            ImGui::SetNextWindowSize(ImVec2(windowW, 450), ImGuiCond_Appearing);
-
-            if (resetGuiPos) {
-                ImGui::SetNextWindowPos(ImVec2(posX, posY), ImGuiCond_Always);
-                resetGuiPos = false; 
-            }
-
-            ImGui::Begin("Simulation Control", NULL, ImGuiWindowFlags_NoResize);
-
-            // 1. Інформація
-            ImGui::TextColored(ImVec4(0.5f, 0.5f, 1.0f, 1.0f), "[ Info ]");
-            ImGui::Text("Performance: %.1f FPS", ImGui::GetIO().Framerate);
-            if (robot) {
-                ImGui::Text("Robot Pos: (%.1f, %.1f)", robot->entityPos.x, robot->entityPos.y);
-
-                Point* p = scene->getDebugPoint();
-                ImGui::Text("CollisionPoint Pos: (%.1f, %.1f)", p->entityPos.x, p->entityPos.y);
-            }
-            ImGui::Separator();
-
-            // 2. Фізика
-            if (robot) {
-                ImGui::TextColored(ImVec4(0.5f, 0.5f, 1.0f, 1.0f), "[ Physics ]");
-                ImGui::SliderFloat("Velocity", &robot->velocity, 0.0f, 600.0f);
-
-                if (ImGui::SliderFloat("Radius", &robot->radius, 5.0f, 100.0f)) {
-                    if (auto mesh = dynamic_cast<CircleMesh*>(robot->getMesh())) {
-                        mesh->setRadius(robot->radius);
-                    }
-                }
-            }
-            ImGui::Separator();
-
-            // 3. Налагодження
-            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "[ Debug ]");
-            ImGui::Checkbox("Show Collision Point", &scene->showCollisionPoint);
-            ImGui::Checkbox("Show Velocity Vector", &scene->showVelocityVector);
-            ImGui::Separator();
-            
-            // 4. Система
-            ImGui::TextColored(ImVec4(0.5f, 0.5f, 1.0f, 1.0f), "[ System ]");
-            
-            if (ImGui::Button("Reset Position", ImVec2(150, 25))) {
-                if (robot) {
-                    robot->entityPos = robot->startPos;
-                    robot->direction = glm::vec2(0.f);
-                    scene->checkCollision(robot->entityPos); // Скинути точку колізії
-                }
-            }
-            if (ImGui::Button("Reset Radius", ImVec2(150, 25))) {
-                if (robot) {
-                    robot->radius = robot->startRadius;
-                    if (auto mesh = dynamic_cast<CircleMesh*>(robot->getMesh())) {
-                        mesh->setRadius(robot->radius);
-                    }
-                }
-            }
-            if (ImGui::Button("Reset Velocity", ImVec2(150, 25))) {
-                if (robot) robot->velocity = robot->startVelocity;
-            }
-
-            ImGui::Spacing();
-
-            if (ImGui::Button("Open Config File", ImVec2(150, 25))) {   
-                // Отримуємо повний шлях до файлу
-                std::string fullPath = ConfigLoader::getConfigPath("config.cfg");
-                
-                // Запускаємо notepad.exe зi шляхом fullPath
-                ShellExecuteA(NULL, "open", "notepad.exe", fullPath.c_str(), NULL, SW_SHOW);
-            }
-            
-            // Кнопка перезавантаження конфігурації
-            if (ImGui::Button("Reload Config", ImVec2(150, 25))) {
-                std::cout << "[App] Reloading scene..." << std::endl;
         
-                // 1. Зчитуємо нові розміри вікна з файлу
-                int newW, newH;
-                ConfigLoader::loadWindowSize("config.cfg", newW, newH);
-
-                // 2. Обмежуємо розміри
-                GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-                const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-                newW = std::clamp(newW, 800, mode->width);
-                newH = std::clamp(newH, 600, mode->height);
-
-                // 3. Якщо розмір змінився - застосовуємо зміни
-                if (newW != winWidth || newH != winHeight) {
-                    winWidth = newW;
-                    winHeight = newH;
-
-                    // Змінюємо розмір вікна GLFW
-                    glfwSetWindowSize(window, winWidth, winHeight);
-   
-                    // Оновлюємо область рендеру OpenGL
-                    glViewport(0, 0, winWidth, winHeight);
-
-                    // Оновлюємо матрицю проекції
-                    glm::mat4 newProj = glm::ortho(0.0f, (float)winWidth, (float)winHeight, 0.0f, -1.0f, 1.0f);
-                    renderer->setProjection(newProj);
-                    renderer->applyProjectionToAllShaders();
-                    
-                    std::cout << "[App] Window resized to: " << winWidth << "x" << winHeight << std::endl;
-                }
-
-                // 4. Видаляємо стару сцену
-                delete scene;
-                
-                // 5. Завантажуємо нову сцену (з новими winWidth/winHeight)
-                scene = ConfigLoader::loadScene("config.cfg", winWidth, winHeight);
-                
-                // Оновлюємо посилання на робота
-                this->robot = scene->getRobot();
+        // Розподіл логіки оновлення між станами програми
+        if (state == AppState::Simulation) {
+            if (scene) scene->update(dt);
+        } else if (state == AppState::Editor) {
+            if (!ImGui::GetIO().WantCaptureMouse && !scene->targetPoint->isDragging) {
+                mapEditor->update(window, scene, getScreenToWorldMousePos());
             }
-
-            ImGui::End();
+            if (scene) scene->updateEditor();
         }
 
-        // --- ImGui & OpenGL: Рендер ---
-        {
-            ImGui::Render();
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    
-            glfwSwapBuffers(window);
-            glfwPollEvents();
-        }
+        // Візуалізація світу
+        if (scene) scene->render(renderer, state);
+
+        // Візуалізація інтерфейсу користувача
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        
+        guiManager->render(window, scene, mapEditor, state, winWidth, winHeight);
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        
+        glfwSwapBuffers(window);
+        glfwPollEvents();
     }
-    // --- КІНЕЦЬ ЦИКЛУ ---
-
-    // Очищення ресурсів
-    delete scene;
-
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
 }
 
 void App::processInput() {
-    glm::vec2 dir = InputManager::getMovementDirection(window);
-    if (robot) robot->direction = dir;
+    if (!scene) return;
+    Robot* robot = scene->getRobot();
 
-    if (InputManager::isKeyPressed(window, GLFW_KEY_R)) {
-        if (robot) {
+    // Drag-and-Drop лівою кнопкою миші у будь-якому режимі додатка
+    int leftMouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+    glm::vec2 mouseWorld = getScreenToWorldMousePos();
+
+    if (leftMouseState == GLFW_PRESS) {
+        // Перевіряємо клік по хрестику цілі, якщо захоплення ще не відбулося
+        if (!scene->targetPoint->isDragging && scene->targetPoint->containsPoint(mouseWorld)) {
+            scene->targetPoint->isDragging = true;
+            scene->targetPoint->isMovingTo = false;
+        }
+        // Оновлюємо координати цілі під час утримання миші
+        if (scene->targetPoint->isDragging) {
+            scene->targetPoint->entityPos = mouseWorld;
+            scene->requestPathUpdate();
+        }
+    } else if (leftMouseState == GLFW_RELEASE) {
+        scene->targetPoint->isDragging = false;
+    }
+
+    // Робот керується лише в режимі симуляції
+    if (state == AppState::Simulation && robot) {
+        static bool wasSpacePressed = false;
+        bool isSpaceDown = (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
+
+        // Перевіряємо, що користувач не пише текст в інтерфейсі прямо зараз
+        if (!ImGui::GetIO().WantTextInput) {
+            if (isSpaceDown && !wasSpacePressed) {
+                // Перевіряємо, чи затиснутий лівий або правий Ctrl
+                bool isCtrlDown = (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || 
+                                   glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS);
+                
+                if (isCtrlDown) {
+                    // Ctrl + Space -> Глобальна пауза симуляції (працює і в ручному, і в авто-режимі)
+                    scene->isPaused = !scene->isPaused;
+                } else if (scene->autonomousMode && scene->targetPoint->active) {
+                    // Space -> Старт / Стоп фізичного руху автопілота робота
+                    scene->targetPoint->isMovingTo = !scene->targetPoint->isMovingTo;
+                    if (scene->targetPoint->isMovingTo) {
+                        scene->requestPathUpdate(); // Оновлюємо карту при старті руху
+                    }
+                }
+            }
+        }
+        wasSpacePressed = isSpaceDown;
+
+        if (!scene->autonomousMode) {
+            bool isCtrlDown = (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || 
+                               glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS);
+
+            if (scene->isPaused || isCtrlDown) {
+                robot->direction = glm::vec2(0.0f); // Скидаємо рух при паузі або хоткеях
+            } else {
+                robot->direction = InputManager::getMovementDirection(window);
+            }
+        } else {
+            int rightMouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+            if (rightMouseState == GLFW_PRESS) {
+                scene->setTarget(getScreenToWorldMousePos());
+            }
+        }
+
+        if (InputManager::isKeyPressed(window, GLFW_KEY_R)) {
             robot->entityPos = robot->startPos;
             robot->direction = glm::vec2(0.f);
+            scene->targetPoint->active = false;
+            scene->targetPoint->isMovingTo = false;
+            scene->autonomousMode = false;
         }
     }
 
-    if (InputManager::isKeyPressed(window, GLFW_KEY_TAB)) {
-        resetGuiPos = true;
+    if (!ImGui::GetIO().WantTextInput) {
+        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+            state = AppState::Simulation;
+        } else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+            state = AppState::Editor;
+            if (scene && scene->getRobot()) {
+                scene->getRobot()->direction = glm::vec2(0.f);
+            }
+        }
     }
+
+    // Trigger для одиночного натискання TAB
+    static bool wasTabPressed = false;
+    bool isTabDown = (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS);
+    if (isTabDown && !wasTabPressed) {
+        if (guiManager && !ImGui::GetIO().WantTextInput) {
+            guiManager->showUi = !guiManager->showUi; // Перемикаємо видимість вікон
+        }
+    }
+    wasTabPressed = isTabDown;
+}
+
+glm::vec2 App::getScreenToWorldMousePos() {
+    double mouseX, mouseY;
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+    return glm::vec2(static_cast<float>(mouseX), static_cast<float>(mouseY));
 }
 
 float App::computeDeltaTime() {
@@ -285,5 +244,5 @@ float App::computeDeltaTime() {
     float currentTime = glfwGetTime();
     float dt = currentTime - lastTime;
     lastTime = currentTime;
-    return dt;
+    return (dt > 0.1f) ? 0.1f : dt;
 }

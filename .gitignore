@@ -3,6 +3,8 @@ build/
 out/
 cmake-build-debug/
 cmake-build-release/
+build_release/
+build_debug/
 
 # IDE files
 .vscode/
@@ -17,9 +19,11 @@ cmake-build-release/
 *.lib
 *.pdb
 *.ilk
+imgui.ini
 
 # Other
 .tmp/
 *.docx
+.hintrc
 
 !glfw3.dll

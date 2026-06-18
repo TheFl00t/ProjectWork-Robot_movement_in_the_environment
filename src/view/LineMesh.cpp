@@ -4,6 +4,7 @@ LineMesh::LineMesh() {
     init();
 }
 
+// Очищення OpenGL ресурсів мешу лінії
 LineMesh::~LineMesh() {
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
@@ -35,7 +36,7 @@ void LineMesh::updateLine(glm::vec2 start, glm::vec2 end) {
     glBufferSubData(GL_ARRAY_BUFFER, 0, 2 * sizeof(glm::vec2), vertices.data());
 }
 
-void LineMesh::draw() {
+void LineMesh::draw(GLenum topology) {
     glBindVertexArray(VAO);
     glDrawArrays(GL_LINES, 0, 2);
 }

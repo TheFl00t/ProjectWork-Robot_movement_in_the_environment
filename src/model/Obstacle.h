@@ -1,21 +1,27 @@
 #pragma once
 
+#include <string>
+#include "../json.hpp"
 #include "Entity.h"
-#include "../view/CircleMesh.h" 
-#include "../view/RectMesh.h"
 
+using json = nlohmann::json;
 class Robot;
+
+struct CollisionInfo {
+    bool collided = false;
+    glm::vec2 normal = glm::vec2(0.0f);       
+    glm::vec2 contactPoint = glm::vec2(0.0f); 
+    float depth = 0.0f;                       
+};
 
 class Obstacle : public Entity {
 public:
     Obstacle(glm::vec2 pos) : Entity(pos) {};
     virtual ~Obstacle() {};
 
-    virtual bool checkCollision(Robot* robot) = 0;
-    virtual void updateMesh() = 0;
+    virtual float intersectRay(const glm::vec2& rayStart, const glm::vec2& rayDir) const = 0;
 
-protected:
-    // Допоміжні методи ініціалізації
-    void initCircle(float radius, unsigned vertexCount = 360);
-    void initRect(float width, float height);
+    virtual CollisionInfo checkCollisionResult(Robot* robot) = 0;
+    virtual std::string getTypeName() const = 0;
+    virtual void serialize(json& j) const = 0;
 };

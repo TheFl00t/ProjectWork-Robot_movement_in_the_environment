@@ -1,23 +1,33 @@
 #pragma once
 
 #include "Obstacle.h"
-#include "../view/RectMesh.h"
 #include "Robot.h"
 
 class RectObstacle : public Obstacle {
-public:
+private:
     float width;
     float height;
 
+public:
     RectObstacle(glm::vec2 pos, float width, float height);
     ~RectObstacle();
 
-    void updateMesh() override;
+    float getWidth() const { return width; }
+    float getHeight() const { return height; }
+    void setDimensions(float w, float h);
+
     void update(float dt) override;
+    bool containsPoint(glm::vec2 point) override;
+    void drawVisitor(class Renderer* renderer) override;
 
-    // Перевірка на зіткнення (AABB - Коло)
-    bool checkCollision(Robot* robot) override;
+    bool getBounds(glm::vec2& outMin, glm::vec2& outMax) const override;
+    void resizeByGizmo(const glm::vec2& mousePos) override;
 
-    // Знаходження найближчої точки на прямокутнику
-    glm::vec2 getCollisionPoint(Robot* robot);
+    float intersectRay(const glm::vec2& rayStart, const glm::vec2& rayDir) const override;
+
+    // Новый полиморфный метод расчета коллизии
+    CollisionInfo checkCollisionResult(Robot* robot) override;
+
+    std::string getTypeName() const override { return "Rectangle"; }
+    void serialize(json& j) const override;
 };

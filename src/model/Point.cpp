@@ -1,20 +1,21 @@
 #include "Point.h"
+#include "../view/Renderer.h"
 
 Point::Point(glm::vec2 pos, glm::vec4 col)
-    : Entity(pos), color(col)
+    : Entity(pos)
 {
-    mesh = new PointMesh(color);
+    style.mode = DrawMode::Outline;
+    style.outlineColor = col;
 }
 
-Point::~Point() {
-    delete mesh;
-}
+Point::~Point() {}
 
 void Point::update(float dt) {}
 
+void Point::drawVisitor(Renderer* renderer) {
+    renderer->drawPoint(this);
+}
+
 void Point::setAlpha(float alpha) {
-    this->color.a = alpha;
-    if (auto pMesh = dynamic_cast<PointMesh*>(mesh)) {
-        pMesh->setColor(this->color);
-    }
+    style.outlineColor.a = alpha;
 }
